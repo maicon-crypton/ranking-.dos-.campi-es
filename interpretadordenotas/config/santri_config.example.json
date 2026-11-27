@@ -1,0 +1,22 @@
+{
+  "paths": {
+    "watch_folder": "C:/Santri/Exportacoes",
+    "export_folder": "%LOCALAPPDATA%/SantriRank/exportacoes",
+    "database_path": "%LOCALAPPDATA%/SantriRank/interpretador.sqlite3",
+    "log_path": "%LOCALAPPDATA%/SantriRank/interpretador.log"
+  },
+  "poll_interval_seconds": 2.0,
+  "weights": {
+    "pts_nota": 10.0,
+    "pts_item_sku": 2.0,
+    "pts_unidade": 1.0,
+    "pts_m3": 50.0,
+    "pts_m2": 5.0,
+    "pts_ml": 3.0,
+    "pts_saco": 4.0,
+    "bonus_mix_itens": 20.0,
+    "bonus_carga_m3": 30.0,
+    "penalidade_erro": 5.0
+  },
+  "employees": []
+}
