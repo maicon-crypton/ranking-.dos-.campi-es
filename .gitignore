@@ -1,0 +1,42 @@
+# Gradle
+.gradle/
+build/
+*/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
+local.properties
+*.iml
+
+# IDE
+.idea/
+*.iws
+*.ipr
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keystore
+*.keystore
+*.jks
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Room schema
+schemas/
+
+# Hilt generated
+app/build/generated/hilt/
+
+# KSP generated
+app/build/generated/ksp/
+
+# Compose compiler
+app/build/generated/compose/

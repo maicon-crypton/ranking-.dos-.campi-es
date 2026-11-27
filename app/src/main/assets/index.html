@@ -1,0 +1,4227 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+   RANKING DOS CAMPEÕES — Interface WebView (Android)
+   Arquivo: app/src/main/assets/index.html
+   Descrição: Interface completa do app (login, ranking, scanner, equipe, relatórios).
+   Contém HTML, CSS (estilo customizado) e JavaScript (lógica da aplicação).
+   ============================================================================ -->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ranking dos Campeões — Campeão da Construção (Brasília-DF)</title>
+  <link href="tailwind.css" rel="stylesheet" />
+
+  <style>
+    /* ============================================================================
+       CSS CUSTOMIZADO — Estilos visuais do app
+       - Fontes: Inter e Plus Jakarta Sans
+       - Componentes: cards, pódio, botões, telefone, scan laser, ranking, login
+       ============================================================================ */
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: url('./fonts/inter-latin.woff2') format('woff2');
+    }
+
+    @font-face {
+      font-family: 'Plus Jakarta Sans';
+      font-style: normal;
+      font-weight: 500 700;
+      font-display: swap;
+      src: url('./fonts/plus-jakarta-sans-latin.woff2') format('woff2');
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #F7F8FA;
+      color: #111827;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hairline-card {
+      background: #FFFFFF;
+      border: 1px solid #E6E8EC;
+      box-shadow: 0 2px 10px -4px rgba(17, 24, 39, 0.04);
+    }
+
+    .podio-gold {
+      background: linear-gradient(180deg, #FFFDF7 0%, #FFFBEB 100%);
+      border: 1px solid #FDE68A;
+      box-shadow: 0 4px 14px -6px rgba(180, 83, 9, 0.14);
+    }
+
+    .podio-silver {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+      border: 1px solid #CBD5E1;
+      box-shadow: 0 4px 14px -6px rgba(71, 85, 105, 0.12);
+    }
+
+    .podio-bronze {
+      background: linear-gradient(180deg, #FFFDFB 0%, #FFF7ED 100%);
+      border: 1px solid #FED7AA;
+      box-shadow: 0 4px 14px -6px rgba(194, 65, 12, 0.10);
+    }
+
+    .btn-primary {
+      background: #166534;
+      color: #FFFFFF;
+      border: 1px solid #14532D;
+      transition: background-color 150ms ease, transform 120ms ease, box-shadow 150ms ease;
+      box-shadow: 0 2px 6px rgba(22, 101, 52, 0.18);
+    }
+    .btn-primary:hover {
+      background: #15803D;
+    }
+    .btn-primary:active {
+      transform: scale(0.99);
+    }
+
+    .btn-ghost {
+      background: #FFFFFF;
+      color: #374151;
+      border: 1px solid #E6E8EC;
+      transition: background-color 150ms ease, border-color 150ms ease;
+    }
+    .btn-ghost:hover {
+      background: #F9FAFB;
+      border-color: #D1D5DB;
+    }
+
+    .phone-shell {
+      background: #18181B;
+      border: 3px solid #27272A;
+      box-shadow: 0 24px 54px -16px rgba(17, 24, 39, 0.18);
+    }
+
+    .phone-viewport {
+      background: #F7F8FA;
+      scrollbar-width: thin;
+      scrollbar-color: #E5E7EB transparent;
+    }
+    .phone-viewport::-webkit-scrollbar {
+      width: 4px;
+    }
+    .phone-viewport::-webkit-scrollbar-thumb {
+      background: #E5E7EB;
+      border-radius: 9999px;
+    }
+
+    @keyframes scanLine {
+      0%, 100% { transform: translateY(8px); opacity: 0.35; }
+      50% { transform: translateY(108px); opacity: 0.95; }
+    }
+    .scan-laser {
+      animation: scanLine 2.6s ease-in-out infinite;
+    }
+
+    .thin-track {
+      height: 6px;
+      background: #EEF0F4;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .thin-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes rankingEnter {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .ranking-enter {
+      animation: rankingEnter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: calc(var(--ranking-index, 0) * 45ms);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ranking-enter {
+        animation: none;
+      }
+    }
+
+    .login-brand-panel {
+      background:
+        radial-gradient(circle at 82% 12%, rgba(202, 138, 4, 0.16), transparent 28%),
+        linear-gradient(155deg, #07170f 0%, #0b2b1b 58%, #123a24 100%);
+      border-bottom: 1px solid rgba(250, 204, 21, 0.12);
+    }
+
+    .login-brand-logo {
+      filter: none;
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      box-shadow:
+        0 18px 48px -24px rgba(6, 20, 12, 0.55),
+        0 2px 10px rgba(6, 20, 12, 0.08);
+    }
+
+    .login-input {
+      height: 58px;
+      padding-top: 16px;
+      padding-bottom: 8px;
+      border-radius: 16px;
+      background: rgba(247, 248, 250, 0.72);
+      transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .login-input-with-right-icon {
+      padding-right: 3.5rem;
+    }
+
+    .login-input-with-right-action {
+      padding-right: 3.75rem;
+    }
+
+    .login-remember-hint {
+      display: block;
+      margin-top: 0.2rem;
+      color: #64736B;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .login-user-icon {
+      position: absolute;
+      top: 50%;
+      right: 0.75rem;
+      width: 2.25rem;
+      height: 2.25rem;
+      padding: 0.5rem;
+      transform: translateY(-50%);
+      border: 1px solid rgba(22, 101, 52, 0.12);
+      border-radius: 0.75rem;
+      background: #F0FDF4;
+      color: #166534;
+      pointer-events: none;
+    }
+
+    .login-input:focus {
+      border-color: #166534;
+      outline: none;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.10);
+    }
+
+    .login-input:focus + .login-label,
+    .login-input:not(:placeholder-shown) + .login-label {
+      transform: translateY(-1.4rem) scale(0.75);
+      color: #166534;
+    }
+
+    .login-label {
+      pointer-events: none;
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: all 150ms ease;
+    }
+
+    .login-role-btn {
+      transition: all 150ms ease;
+    }
+
+    .login-role-btn.active {
+      background: linear-gradient(135deg, #166534, #15803D);
+      color: white;
+    }
+
+    .login-btn-primary {
+      background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+      color: #172012;
+      box-shadow:
+        0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      transition: all 150ms ease;
+    }
+
+    .login-btn-primary:hover {
+      filter: brightness(1.05);
+    }
+
+    .login-btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .login-btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .login-show-pass {
+      position: absolute;
+      top: 50%;
+      right: 0.625rem;
+      display: flex;
+      width: 2.5rem;
+      height: 2.5rem;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(-50%);
+      border: 1px solid #E6E8EC;
+      border-radius: 0.75rem;
+      background: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(17, 24, 39, 0.08);
+      color: #6B7280;
+      transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+
+    .login-show-pass:hover {
+      border-color: #BBF7D0;
+      color: #166534;
+      background: #F0FDF4;
+    }
+
+    .login-show-pass:active {
+      transform: translateY(-50%) scale(0.96);
+    }
+
+    .login-show-pass:focus-visible {
+      outline: 3px solid rgba(22, 101, 52, 0.2);
+      outline-offset: 2px;
+    }
+
+    .login-anim { animation: none; }
+
+    .login-bg-pattern { background-size: 24px 24px; }
+
+    /* Login utility classes */
+    .login-bg-pattern { background-size: 24px 24px; }
+    .w-16 { width: 4rem; }
+    .h-16 { height: 4rem; }
+    .w-14 { width: 3.5rem; }
+    .h-14 { height: 3.5rem; }
+    .w-3\.5 { width: 0.875rem; }
+    .h-3\.5 { height: 0.875rem; }
+    .w-2\.5 { width: 0.625rem; }
+    .h-2\.5 { height: 0.625rem; }
+    .w-1\.5 { width: 0.375rem; }
+    .h-1\.5 { height: 0.375rem; }
+    .w-4 { width: 1rem; }
+    .h-4 { height: 1rem; }
+    .w-8 { width: 2rem; }
+    .h-8 { height: 2rem; }
+    .pt-10 { padding-top: 2.5rem; }
+    .pb-8 { padding-bottom: 2rem; }
+    .pt-6 { padding-top: 1.5rem; }
+    .pb-5 { padding-bottom: 1.25rem; }
+    .pt-5 { padding-top: 1.25rem; }
+    .pb-2 { padding-bottom: 0.5rem; }
+    .px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-5 { margin-bottom: 1.25rem; }
+    .mt-1\.5 { margin-top: 0.375rem; }
+    .mt-3 { margin-top: 0.75rem; }
+    .mt-3\.5 { margin-top: 0.875rem; }
+    .mt-5 { margin-top: 1.25rem; }
+    .mr-0\.5 { margin-right: 0.125rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-2xl { border-radius: 1rem; }
+    .text-emerald-300 { color: #6ee7b7; }
+    .bg-emerald-500 { background-color: #10b981; }
+    .bg-emerald-300 { background-color: #6ee7b7; }
+    .text-emerald-800 { color: #065f46; }
+    .bg-white\/10 { background-color: rgba(255,255,255,0.1); }
+    .bg-white\/95 { background-color: rgba(255,255,255,0.95); }
+    .bg-white\/5 { background-color: rgba(255,255,255,0.05); }
+    .border-white\/10 { border-color: rgba(255,255,255,0.1); }
+    .text-white\/70 { color: rgba(255,255,255,0.7); }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .shrink-0 { flex-shrink: 0; }
+    .flex-1 { flex: 1 1 0%; }
+    .gap-1\.5 { gap: 0.375rem; }
+    .gap-2\.5 { gap: 0.625rem; }
+    .gap-3 { gap: 0.75rem; }
+    .animate-spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pointer-events-none { pointer-events: none; }
+    .relative { position: relative; }
+    .absolute { position: absolute; }
+    .-top-10 { top: -2.5rem; }
+    .-right-10 { right: -2.5rem; }
+    .-bottom-8 { bottom: -2rem; }
+    .-left-8 { left: -2rem; }
+    .overflow-hidden { overflow: hidden; }
+    .max-w-sm { max-width: 24rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .text-center { text-align: center; }
+    .leading-tight { line-height: 1.25; }
+    .leading-relaxed { line-height: 1.625; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    .text-\[9px\] { font-size: 9px; }
+    .text-\[10px\] { font-size: 10px; }
+    .text-\[11px\] { font-size: 11px; }
+    .text-xs { font-size: 0.75rem; }
+    .text-sm { font-size: 0.875rem; }
+    .text-lg { font-size: 1.125rem; }
+    .text-xl { font-size: 1.25rem; }
+    .border-2 { border-width: 2px; }
+    .border-t-white { border-top-color: #fff; }
+    .border-white\/30 { border-color: rgba(255,255,255,0.3); }
+    .bg-white { background-color: #fff; }
+    .text-campeao-muted { color: #6B7280; }
+    .text-campeao-ink { color: #111827; }
+    .text-campeao-subtle { color: #9CA3AF; }
+    .text-campeao-greenDark { color: #166534; }
+    .bg-campeao-greenSoft { background-color: #DCFCE7; }
+    .bg-campeao-surface\/50 { background-color: rgba(247,248,250,0.5); }
+    .border-campeao-line { border-color: #E6E8EC; }
+    .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .justify-center { justify-content: center; }
+    .justify-between { justify-content: space-between; }
+    .items-center { align-items: center; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .space-y-4 > * + * { margin-top: 1rem; }
+
+    .min-h-full { min-height: 100%; }
+    .max-w-md { max-width: 28rem; }
+    .rounded-\[2rem\] { border-radius: 2rem; }
+    .w-40 { width: 10rem; }
+    .h-40 { height: 10rem; }
+    .h-36 { height: 9rem; }
+    .max-w-8 { max-width: 2rem; }
+    .object-contain { object-fit: contain; }
+    .p-2 { padding: 0.5rem; }
+    .pt-4 { padding-top: 1rem; }
+    .pr-16 { padding-right: 4rem; }
+    .mt-3 { margin-top: 0.75rem; }
+    .mt-4 { margin-top: 1rem; }
+    .flex-wrap { flex-wrap: wrap; }
+    .gap-x-3 { column-gap: 0.75rem; }
+    .gap-y-1 { row-gap: 0.25rem; }
+    .tracking-\[0\.2em\] { letter-spacing: 0.2em; }
+    .text-white\/75 { color: rgb(255 255 255 / 75%); }
+    .text-white\/80 { color: rgb(255 255 255 / 80%); }
+    .bg-green-50 { background-color: #f0fdf4; }
+    .text-green-800 { color: #166534; }
+    .bg-red-50 { background-color: #fef2f2; }
+    .text-red-700 { color: #b91c1c; }
+    .text-red-900 { color: #7f1d1d; }
+    .bg-slate-100 { background-color: #f1f5f9; }
+    .text-slate-700 { color: #334155; }
+    .text-amber-700 { color: #b45309; }
+    .bg-campeao-greenDark\/90 { background-color: rgb(22 101 52 / 90%); }
+    .top-1\/2 { top: 50%; }
+    .-translate-y-1\/2 { transform: translateY(-50%); }
+    .cursor-wait { cursor: wait; }
+    .opacity-60 { opacity: 0.6; }
+
+    html, body {
+      height: 100%;
+    }
+
+    body.android-app {
+      min-height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    body.android-app > header {
+      display: none;
+    }
+
+    body.android-app > main {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      max-width: none;
+      padding: 0;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    body.android-app #showcaseContainer,
+    body.android-app .android-app-frame {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
+    body.android-app .android-app-frame {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #F7F8FA;
+    }
+
+    body.android-app .phone-viewport {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    body.android-app .login-brand-panel {
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body.android-app .login-card {
+      width: min(100%, 440px);
+      margin: 0 auto;
+      filter: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    #profileModal.hidden {
+      display: none !important;
+      pointer-events: none !important;
+    }
+
+    body.android-app #toastBanner {
+      right: 12px;
+      bottom: 12px;
+    }
+
+    @media print {
+      body.android-app .android-app-frame > div:last-child {
+        display: none !important;
+      }
+
+      body.android-app .phone-viewport {
+        overflow: visible !important;
+        height: auto !important;
+        padding: 0 !important;
+      }
+
+      body.android-app .android-app-frame {
+        overflow: visible !important;
+        height: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Barra Superior Minimalista -->
+  <header class="w-full bg-white/90 backdrop-blur border-b border-campeao-line sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-campeao-greenSoft border border-campeao-green/20 flex items-center justify-center text-campeao-greenDark shrink-0">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+            <path d="M4 22h16" />
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+          </svg>
+        </div>
+        <div class="truncate">
+          <span class="font-semibold text-sm text-campeao-ink">Ranking dos Campeões</span>
+          <span class="hidden sm:inline text-xs text-campeao-muted ml-2">Campeão da Construção • Brasília-DF</span>
+        </div>
+      </div>
+
+      <!-- Seletor de Telas (Desktop) -->
+      <nav aria-label="Telas do aplicativo" class="hidden md:flex items-center gap-1 bg-campeao-surface p-1 rounded-xl border border-campeao-line">
+        <button data-screen-tab="login" onclick="selectScreen('login')" class="screen-tab px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer"></button>
+        <button data-screen-tab="ranking" onclick="selectScreen('ranking')" class="screen-tab px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer"></button>
+        <button data-screen-tab="scanner" onclick="selectScreen('scanner')" class="screen-tab px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer"></button>
+        <button data-screen-tab="equipe" onclick="selectScreen('equipe')" class="screen-tab px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer"></button>
+        <button data-screen-tab="relatorios" onclick="selectScreen('relatorios')" class="screen-tab px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer"></button>
+        <button data-screen-tab="configuracoes" onclick="selectScreen('configuracoes')" class="screen-tab px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer"></button>
+      </nav>
+
+      <!-- Modo de Visualização & Perfil ADM/Operador -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center bg-campeao-surface p-0.5 rounded-xl border border-campeao-line">
+          <button
+            id="roleAdmBtn"
+            onclick="setUserRole('adm')"
+            class="px-2.5 py-1 rounded-lg text-xs font-medium bg-campeao-greenDark text-white transition cursor-pointer"
+          >
+            ADM
+          </button>
+          <button
+            id="roleOpBtn"
+            onclick="setUserRole('operador')"
+            class="px-2.5 py-1 rounded-lg text-xs font-medium text-campeao-muted hover:text-campeao-ink transition cursor-pointer"
+          >
+            Operador
+          </button>
+        </div>
+
+        <div class="hidden sm:flex items-center bg-campeao-surface p-0.5 rounded-xl border border-campeao-line">
+          <button
+            id="modeSingleBtn"
+            onclick="setViewMode('single')"
+            class="px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-campeao-ink shadow-2xs transition cursor-pointer"
+          >
+            Foco
+          </button>
+          <button
+            id="modeSideBtn"
+            onclick="setViewMode('side')"
+            class="px-2.5 py-1 rounded-lg text-xs font-medium text-campeao-muted hover:text-campeao-ink transition cursor-pointer"
+          >
+            Lado a Lado
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seletor de Telas (Mobile) -->
+    <nav aria-label="Telas mobile" class="md:hidden px-4 pb-2.5 flex items-center gap-1.5 overflow-x-auto">
+      <button data-screen-tab="login" onclick="selectScreen('login')" class="screen-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer"></button>
+      <button data-screen-tab="ranking" onclick="selectScreen('ranking')" class="screen-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer"></button>
+      <button data-screen-tab="scanner" onclick="selectScreen('scanner')" class="screen-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer"></button>
+      <button data-screen-tab="equipe" onclick="selectScreen('equipe')" class="screen-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer"></button>
+      <button data-screen-tab="relatorios" onclick="selectScreen('relatorios')" class="screen-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer"></button>
+      <button data-screen-tab="configuracoes" onclick="selectScreen('configuracoes')" class="screen-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer"></button>
+    </nav>
+  </header>
+
+  <!-- Toast Discreto -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 hidden max-w-xs">
+    <div id="toastInner" class="rounded-2xl px-4 py-2.5 text-white font-medium text-xs shadow-lg flex items-center gap-2 bg-campeao-ink">
+      <span id="toastDot" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+      <span id="toastText">Atualizado.</span>
+    </div>
+  </div>
+
+  <!-- Área Central -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col items-center justify-center">
+    <div id="showcaseContainer" class="w-full flex flex-col items-center justify-center"></div>
+  </main>
+
+  <!-- Bottom Sheet / Modal Minimalista de Perfil -->
+  <div id="profileModal" class="fixed inset-0 z-50 hidden bg-black/35 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeProfileModal()">
+    <div class="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl border border-campeao-line shadow-xl overflow-hidden" onclick="event.stopPropagation()">
+      <div id="profileModalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // Interface do aplicativo e comunicação com a camada Android.
+    // =========================================================================
+    // Ícones e rótulos
+    // =========================================================================
+
+    const SCREEN_LABELS = {
+      login: 'Login',
+      ranking: 'Ranking',
+      scanner: 'Scanner',
+      equipe: 'Equipe',
+      relatorios: 'Relatórios',
+      configuracoes: 'Configurações'
+    };
+
+    const ICONS = {
+      trophy: `
+        <svg class="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </svg>
+      `,
+      trophySilver: `
+        <svg class="w-3.5 h-3.5 text-campeao-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </svg>
+      `,
+      crown: `
+        <svg class="w-4 h-4 text-emerald-700" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 18h18v2H3v-2zm1.5-10 4.5 4.5L12 6l3 6.5L19.5 8 18 16H6L4.5 8z" />
+        </svg>
+      `,
+      trophyBronze: `
+        <svg class="w-3.5 h-3.5 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </svg>
+      `,
+      chevron: `
+        <svg class="w-4 h-4 text-campeao-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      `,
+      lock: `
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      `,
+      shield: `
+        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+        </svg>
+      `,
+      camera: `
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+          <circle cx="12" cy="13" r="3.5" />
+        </svg>
+      `,
+      paperclip: `
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+        </svg>
+      `,
+      navRanking: `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </svg>
+      `,
+      navScanner: `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+          <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+          <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+          <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      `,
+      navEquipe: `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      `,
+      navRelatorios: `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v18h18" />
+          <path d="m19 9-5 5-4-4-3 3" />
+        </svg>
+      `,
+      navSettings: `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.6 2.77-.08-.02a1.7 1.7 0 0 0-1.79.5l-.05.07h-3.2l-.04-.08a1.7 1.7 0 0 0-1.64-1l-.1.01-2.78-1.6.02-.09a1.7 1.7 0 0 0-.5-1.78L8 15.65v-3.2l.08-.04a1.7 1.7 0 0 0 1-1.64l-.01-.1 1.6-2.78.09.02a1.7 1.7 0 0 0 1.78-.5l.05-.07h3.2l.04.08a1.7 1.7 0 0 0 1.64 1l.1-.01 2.78 1.6-.02.09a1.7 1.7 0 0 0 .5 1.78l.07.05v3.2Z" />
+        </svg>
+      `
+    };
+
+    // =========================================================================
+    // Dados e estado da aplicação
+    // =========================================================================
+
+    const PERIODS = {
+      hoje: { label: 'Hoje' },
+      semana: { label: 'Semana' },
+      mes: { label: 'Mês' }
+    };
+
+    const INITIAL_EMPLOYEES = [
+      {
+        id: 'emp-1',
+        matricula: 'CC-104',
+        nome: 'Rafael Souza',
+        cargo: 'Conferente de Madeira',
+        setor: 'Pátio SIA • Brasília-DF',
+        tier: 'Mestre',
+        pontosSemana: 2840,
+        volumeM3: 148.5,
+        pesoKg: 64200,
+        notas: 46,
+        metaPct: 94
+      },
+      {
+        id: 'emp-2',
+        matricula: 'CC-112',
+        nome: 'Camila Ferreira',
+        cargo: 'Operadora de Empilhadeira',
+        setor: 'Carga & Descarga • Brasília-DF',
+        tier: 'Ouro',
+        pontosSemana: 2690,
+        volumeM3: 162.0,
+        pesoKg: 71800,
+        notas: 41,
+        metaPct: 89
+      },
+      {
+        id: 'emp-3',
+        matricula: 'CC-108',
+        nome: 'Lucas Mendes',
+        cargo: 'Almoxarife',
+        setor: 'Estoque de Chapas • Brasília-DF',
+        tier: 'Ouro',
+        pontosSemana: 2410,
+        volumeM3: 119.2,
+        pesoKg: 49500,
+        notas: 38,
+        metaPct: 82
+      },
+      {
+        id: 'emp-4',
+        matricula: 'CC-119',
+        nome: 'Juliana Rocha',
+        cargo: 'Separadora de Carga',
+        setor: 'Separação • Brasília-DF',
+        tier: 'Prata',
+        pontosSemana: 2085,
+        volumeM3: 96.4,
+        pesoKg: 38900,
+        notas: 33,
+        metaPct: 74
+      },
+      {
+        id: 'emp-5',
+        matricula: 'CC-125',
+        nome: 'Bruno Almeida',
+        cargo: 'Expedição',
+        setor: 'Logística • Brasília-DF',
+        tier: 'Prata',
+        pontosSemana: 1860,
+        volumeM3: 88.0,
+        pesoKg: 41200,
+        notas: 29,
+        metaPct: 68
+      },
+      {
+        id: 'emp-6',
+        matricula: 'CC-131',
+        nome: 'Patrícia Lima',
+        cargo: 'Conferente de Madeira',
+        setor: 'Beneficiamento • Brasília-DF',
+        tier: 'Bronze',
+        pontosSemana: 1620,
+        volumeM3: 74.8,
+        pesoKg: 31400,
+        notas: 25,
+        metaPct: 61
+      },
+      {
+        id: 'emp-7',
+        matricula: 'CC-138',
+        nome: 'Diego Costa',
+        cargo: 'Operador de Empilhadeira',
+        setor: 'Pátio Taguatinga • DF',
+        tier: 'Bronze',
+        pontosSemana: 1445,
+        volumeM3: 69.5,
+        pesoKg: 33700,
+        notas: 22,
+        metaPct: 55
+      }
+    ];
+
+    const OCR_PRESETS = [
+      { id: 'n1', code: 'NF-e 48.912', desc: 'Vigas e Caibros Itaúba', volumeM3: 14.5, pesoKg: 6250 },
+      { id: 'n2', code: 'Romaneio 9.304', desc: 'Compensado Naval 18mm', volumeM3: 11.2, pesoKg: 4180 },
+      { id: 'n3', code: 'Pedido 7.185', desc: 'Eucalipto Tratado', volumeM3: 18.0, pesoKg: 7900 }
+    ];
+
+    const INITIAL_NOTES = [
+      {
+        id: 'note-1',
+        autor: 'Rafael Souza',
+        titulo: 'Lote de vigas 6x12 conferido',
+        detalhe: 'Fardo separado para entrega em Águas Claras.',
+        tempo: '15:40'
+      },
+      {
+        id: 'note-2',
+        autor: 'Camila Ferreira',
+        titulo: 'Descarga doca 02 liberada',
+        detalhe: 'Carreta de chapas concluída no pátio SIA.',
+        tempo: '14:15'
+      },
+      {
+        id: 'note-3',
+        autor: 'Lucas Mendes',
+        titulo: 'Inventário OSB 15mm atualizado',
+        detalhe: 'Conferência semanal sem divergências.',
+        tempo: 'Ontem'
+      }
+    ];
+
+    const IS_ANDROID_APP = new URLSearchParams(window.location.search).get('app') === '1';
+
+    // ---------------------------------------------------------------------------
+    // ESTADO DA APLICAÇÃO (appState)
+    // Armazena: tela ativa, papel do usuário (adm/operador), modo de exibição,
+    // período do ranking, dados de login, funcionários, notas, observações, etc.
+    // ---------------------------------------------------------------------------
+    let appState = {
+      activeScreen: IS_ANDROID_APP ? 'login' : 'ranking',
+      userRole: 'adm',
+      viewMode: 'single',
+      rankingPeriod: 'semana',
+      loginId: '',
+      loginPin: '',
+      rememberCredentials: false,
+      autoApproveNotes: false,
+      loginPinVisible: false,
+      loginPending: false,
+      employees: JSON.parse(JSON.stringify(INITIAL_EMPLOYEES)),
+      notes: JSON.parse(JSON.stringify(INITIAL_NOTES)),
+      observations: [],
+      adminUsers: [{ username: 'ADM-001', role: 'ADMIN' }],
+      employeeSearch: '',
+      employeeForm: null,
+      noteForm: null,
+      noteCancelId: '',
+      noteCancelReason: '',
+      pointAdjustmentEmployeeId: '',
+      reviewPhotoNoteId: '',
+      reviewPhotoRequestId: '',
+      reviewPhotoDataUrl: '',
+      reviewPhotoError: '',
+      scanPhotoSource: '',
+      scanPhotoName: '',
+      scanObservation: '',
+      scanAnalysis: null,
+      scanAnalysisLoading: false,
+      scanAnalysisError: '',
+      scanAnalysisRequestId: '',
+      scanConfirmRequestId: '',
+      equipeTab: 'equipe',
+      noteStatusFilter: 'all',
+      visibleSeries: { A: true, B: true, C: true },
+      selectedChartPoint: { series: 'B', index: 3 },
+      admReportSearch: '',
+      admReportSort: 'points',
+      admEmployeeExpandedId: '',
+      admFilterEmployeeId: 'all',
+      scanEmployeeId: '',
+      admAuditStatus: {
+        'emp-1': 'Aprovado',
+        'emp-2': 'Aprovado',
+        'emp-3': 'Pendente'
+      },
+      exportedFormat: '',
+      exportedAt: ''
+    };
+    let selectedPhotoFile = null;
+    let loginError = '';
+    let nativeBootstrapReady = !IS_ANDROID_APP || !window.AndroidApp;
+
+    document.body.classList.toggle('android-app', IS_ANDROID_APP);
+
+    try {
+      const savedState = IS_ANDROID_APP
+        ? null
+        : window.localStorage.getItem('santriRankPrototypeState');
+      if (savedState) {
+        const saved = JSON.parse(savedState);
+        appState = {
+          ...appState,
+          ...saved,
+          loginPin: '',
+          scanPhotoSource: '',
+          scanPhotoName: '',
+          scanObservation: '',
+          scanAnalysis: null,
+          scanAnalysisLoading: false,
+          scanAnalysisError: '',
+          scanAnalysisRequestId: '',
+          scanConfirmRequestId: '',
+          employeeForm: saved.employeeForm
+            ? { ...saved.employeeForm, password: '' }
+            : null
+        };
+      }
+    } catch (error) {
+      console.warn('Não foi possível restaurar os dados locais do app.', error);
+    }
+
+    if (!IS_ANDROID_APP && !appState.loginId) {
+      try {
+        appState.loginId = window.localStorage.getItem('santriRankRememberedLogin') || '';
+      } catch (error) {
+        console.warn('Não foi possível restaurar a matrícula salva.', error);
+      }
+    }
+
+    function saveAppState() {
+      if (IS_ANDROID_APP) return;
+      try {
+        const saved = {
+          ...appState,
+          loginPin: '',
+          scanPhotoSource: '',
+          scanPhotoName: '',
+          scanObservation: '',
+          scanAnalysis: null,
+          scanAnalysisLoading: false,
+          scanAnalysisError: '',
+          scanAnalysisRequestId: '',
+          scanConfirmRequestId: '',
+          employeeForm: appState.employeeForm
+            ? { ...appState.employeeForm, password: '' }
+            : null
+        };
+        window.localStorage.setItem('santriRankPrototypeState', JSON.stringify(saved));
+      } catch (error) {
+        console.warn('Não foi possível salvar os dados locais do app.', error);
+      }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Inicialização nativa — carrega os dados pela ponte Android.
+    // O resultado é processado em applyNativeBootstrapResult().
+    // ---------------------------------------------------------------------------
+    function applyNativeBootstrap() {
+      if (!IS_ANDROID_APP || !window.AndroidApp) return;
+      try {
+        window.AndroidApp.bootstrap();
+      } catch (error) {
+        console.error('Não foi possível carregar os dados do aplicativo.', error);
+        nativeBootstrapReady = true;
+        loginError = 'Não foi possível carregar os dados. Feche e abra o aplicativo novamente.';
+        renderApp();
+      }
+    }
+
+    window.applyNativeBootstrapResult = function (resultJson) {
+      nativeBootstrapReady = true;
+      try {
+        const data = JSON.parse(resultJson);
+        if (data.error) throw new Error(data.error);
+        if (Array.isArray(data.employees)) {
+          appState.employees = data.employees;
+        }
+        if (Array.isArray(data.notes)) {
+          appState.notes = data.notes;
+        }
+        if (Array.isArray(data.observations)) {
+          appState.observations = data.observations;
+        }
+        if (Array.isArray(data.adminUsers)) {
+          appState.adminUsers = data.adminUsers;
+        }
+        if (IS_ANDROID_APP && typeof window.AndroidApp.getAutoApproveNotes === 'function') {
+          try {
+            const autoApprove = JSON.parse(window.AndroidApp.getAutoApproveNotes());
+            appState.autoApproveNotes = autoApprove.enabled === true;
+          } catch (error) {
+            appState.autoApproveNotes = false;
+          }
+        }
+        if (data.auditStatus && typeof data.auditStatus === 'object') {
+          appState.admAuditStatus = data.auditStatus;
+        }
+        if (data.authenticated) {
+          appState.userRole = data.role === 'ADMIN' ? 'adm' : 'operador';
+          if (appState.userRole === 'operador') {
+            const ownEmployee = appState.employees.find((employee) =>
+              String(employee.matricula || '').toLowerCase() === String(appState.loginId || '').toLowerCase()
+            );
+            if (ownEmployee) appState.scanEmployeeId = String(ownEmployee.id);
+          }
+          if (appState.activeScreen === 'login') {
+            appState.activeScreen = appState.userRole === 'adm' ? 'relatorios' : 'ranking';
+          }
+        } else {
+          if (typeof data.rememberedUsername === 'string') {
+            appState.loginId = data.rememberedUsername;
+          }
+          if (typeof data.rememberedPassword === 'string' && data.rememberCredentials) {
+            appState.loginPin = data.rememberedPassword;
+          }
+          appState.rememberCredentials = data.rememberCredentials === true;
+          appState.userRole = 'operador';
+          appState.activeScreen = 'login';
+        }
+      } catch (error) {
+        console.error('Não foi possível carregar os dados do aplicativo.', error);
+        loginError = 'Não foi possível carregar os dados. Feche e abra o aplicativo novamente.';
+      }
+      renderApp();
+    };
+
+    // ---------------------------------------------------------------------------
+    // Recebe o resultado da análise OCR da nota enviado pela ponte Android.
+    // ---------------------------------------------------------------------------
+    window.onScanAnalysisResult = function (requestId, resultJson) {
+      let result;
+      try {
+        result = JSON.parse(resultJson);
+      } catch (error) {
+        console.error('Resposta inválida da análise da nota.', error);
+        result = { success: false, message: 'A resposta da análise veio em formato inválido.' };
+      }
+
+      if (requestId === appState.scanConfirmRequestId) {
+        appState.scanConfirmRequestId = '';
+        if (result.success) {
+          clearScanAnalysisPreview();
+          appState.scanPhotoSource = '';
+          appState.scanPhotoName = '';
+          appState.scanObservation = '';
+          selectedPhotoFile = null;
+          applyNativeBootstrap();
+          appState.activeScreen = 'equipe';
+          appState.equipeTab = 'notas';
+          appState.noteStatusFilter = 'queue';
+          showToast(result.message || 'Nota enviada para auditoria.');
+        } else {
+          showToast(result.message || 'Não foi possível enviar a nota.');
+        }
+        renderApp();
+        return;
+      }
+
+      if (requestId !== appState.scanAnalysisRequestId) {
+        if (result.success && result.token && window.AndroidApp) {
+          window.AndroidApp.cancelScanAnalysis(result.token);
+        }
+        return;
+      }
+
+      appState.scanAnalysisRequestId = '';
+      appState.scanAnalysisLoading = false;
+      if (result.success) {
+        appState.scanAnalysis = result;
+        appState.scanAnalysisError = '';
+      } else {
+        appState.scanAnalysis = null;
+        appState.scanAnalysisError = result.message || 'Não foi possível analisar a nota.';
+      }
+      renderApp();
+    };
+
+    // ---------------------------------------------------------------------------
+    // Processa o resultado assíncrono do login e direciona o usuário conforme o perfil.
+    // ---------------------------------------------------------------------------
+    window.onLoginResult = function (resultJson) {
+      appState.loginPending = false;
+      let result;
+      try {
+        result = JSON.parse(resultJson);
+      } catch (error) {
+        console.error('Resposta inválida do login.', error);
+        loginError = 'Não foi possível autenticar. Tente novamente.';
+        renderApp();
+        return;
+      }
+      if (!result.success) {
+        loginError = result.message || 'Matrícula ou senha inválida.';
+        renderApp();
+        return;
+      }
+      appState.userRole = result.role === 'ADMIN' ? 'adm' : 'operador';
+      try {
+        const saveResult = JSON.parse(window.AndroidApp.rememberUsername(appState.loginId.trim()));
+        if (!saveResult.success) {
+          console.warn('Não foi possível salvar a matrícula.', saveResult.message);
+        }
+        if (typeof window.AndroidApp.saveCredentials === 'function') {
+          window.AndroidApp.saveCredentials(
+            appState.loginId.trim(),
+            appState.loginPin,
+            appState.rememberCredentials
+          );
+        }
+      } catch (error) {
+        console.error('Não foi possível salvar a matrícula.', error);
+      }
+
+      appState.loginPin = '';
+      appState.viewMode = 'single';
+      setViewMode('single');
+      appState.activeScreen = appState.userRole === 'adm' ? 'relatorios' : 'ranking';
+      renderApp();
+      showToast(
+        appState.userRole === 'adm'
+          ? 'Sessão ADM iniciada.'
+          : 'Sessão operador iniciada.'
+      );
+    };
+
+    window.onNotePhotoResult = function (requestId, resultJson) {
+      if (requestId !== appState.reviewPhotoRequestId) return;
+      appState.reviewPhotoRequestId = '';
+      try {
+        const result = JSON.parse(resultJson);
+        if (!result.success) {
+          appState.reviewPhotoDataUrl = '';
+          appState.reviewPhotoError = result.message || 'Não foi possível carregar a imagem.';
+        } else {
+          appState.reviewPhotoDataUrl = result.dataUrl || '';
+          appState.reviewPhotoError = '';
+        }
+      } catch (error) {
+        console.error('Resposta inválida ao carregar a imagem da nota.', error);
+        appState.reviewPhotoDataUrl = '';
+        appState.reviewPhotoError = 'A imagem retornou em formato inválido.';
+      }
+      renderApp();
+    };
+
+    // =========================================================================
+    // FUNÇÕES AUXILIARES E CONTROLE DE NAVEGAÇÃO
+    // =========================================================================
+
+    function calcularPontuacao(volumeM3, pesoKg) {
+      const vol = Number(volumeM3) || 0;
+      const peso = Number(pesoKg) || 0;
+      return Math.max(10, Math.round(vol * 12 + peso * 0.025));
+    }
+
+    function getPeriodStart() {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      if (appState.rankingPeriod === 'semana') {
+        start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+      } else if (appState.rankingPeriod === 'mes') {
+        start.setDate(1);
+      }
+      return start.getTime();
+    }
+
+    function getEmployeePeriodStats(employee) {
+      if (IS_ANDROID_APP) {
+        const start = getPeriodStart();
+        const approvedNotes = appState.notes.filter((note) =>
+          note.employeeId === String(employee.id) &&
+          note.status === 'APROVADO' &&
+          Number(note.createdAt) >= start
+        );
+        return {
+          points: approvedNotes.reduce((total, note) => total + (Number(note.points) || 0), 0) +
+            (Number(employee.pontosAjusteAdm) || 0),
+          volumeM3: approvedNotes.reduce((total, note) => total + (Number(note.volumeM3) || 0), 0),
+          notes: approvedNotes.length
+        };
+      }
+      const factor = appState.rankingPeriod === 'hoje' ? 0.22 :
+        appState.rankingPeriod === 'mes' ? 3.85 : 1;
+      return {
+        points: Math.round((Number(employee.pontosSemana) || 0) * factor),
+        volumeM3: Number(employee.volumeM3) || 0,
+        notes: Number(employee.notas) || 0
+      };
+    }
+
+    function getSortedEmployees() {
+      return appState.employees.filter((employee) => employee.ativo !== false).sort(
+        (a, b) => getEmployeePeriodStats(b).points - getEmployeePeriodStats(a).points
+      );
+    }
+
+    function getInitials(nome) {
+      const parts = String(nome || '').trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 0) return 'CC';
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      const text = document.getElementById('toastText');
+      if (!banner || !text) return;
+      text.textContent = msg;
+      banner.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 2800);
+    }
+
+    function selectScreen(screenKey) {
+      appState.activeScreen = screenKey;
+      if (appState.viewMode !== 'single') {
+        setViewMode('single');
+        return;
+      }
+      renderApp();
+    }
+
+    function setUserRole(role) {
+      appState.userRole = role === 'adm' ? 'adm' : 'operador';
+      appState.loginId = appState.userRole === 'adm' ? 'ADM-001' : 'MAT-104';
+      loginError = '';
+
+      const admBtn = document.getElementById('roleAdmBtn');
+      const opBtn = document.getElementById('roleOpBtn');
+      if (admBtn && opBtn) {
+        if (appState.userRole === 'adm') {
+          admBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-medium bg-campeao-greenDark text-white transition cursor-pointer';
+          opBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-medium text-campeao-muted hover:text-campeao-ink transition cursor-pointer';
+        } else {
+          opBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-medium bg-campeao-ink text-white transition cursor-pointer';
+          admBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-medium text-campeao-muted hover:text-campeao-ink transition cursor-pointer';
+        }
+      }
+
+      renderApp();
+      showToast(
+        appState.userRole === 'adm'
+          ? 'Modo Administrador (ADM) ativado.'
+          : 'Modo Operador ativado.'
+      );
+    }
+
+    function toggleLoginPassword() {
+      appState.loginPinVisible = !appState.loginPinVisible;
+      renderApp();
+      document.getElementById('loginPassword')?.focus();
+    }
+
+    function setViewMode(mode) {
+      appState.viewMode = mode === 'side' ? 'side' : 'single';
+      const singleBtn = document.getElementById('modeSingleBtn');
+      const sideBtn = document.getElementById('modeSideBtn');
+      if (singleBtn && sideBtn) {
+        if (appState.viewMode === 'single') {
+          singleBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-campeao-ink shadow-2xs transition cursor-pointer';
+          sideBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-medium text-campeao-muted hover:text-campeao-ink transition cursor-pointer';
+        } else {
+          sideBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-campeao-ink shadow-2xs transition cursor-pointer';
+          singleBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-medium text-campeao-muted hover:text-campeao-ink transition cursor-pointer';
+        }
+      }
+      renderApp();
+    }
+
+    // =========================================================================
+    // Acesso
+    // =========================================================================
+
+    function renderLoginScreen() {
+      const roleLabel = appState.userRole === 'adm' ? 'Administrador' : 'Operador';
+      return `
+        <div class="min-h-full flex flex-col" style="background-color: #F7F8FA;">
+
+          <div class="login-brand-panel px-6 pt-10 pb-8 text-center text-white relative">
+
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/95 shadow-lg mb-4 overflow-hidden">
+              <img src="logo.jpg" alt="Campeão da Construção" class="w-full h-full object-contain p-1" />
+            </div>
+            <h1 class="text-xl font-bold tracking-tight">Ranking dos <span class="text-emerald-300">Campeões</span></h1>
+            <p class="text-xs text-white/70 mt-1.5 font-medium">Madeireira Campeão da Construção</p>
+            <div class="flex items-center justify-center gap-1.5 mt-3">
+              <span class="inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/10 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white/70">
+                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Brasília-DF
+              </span>
+            </div>
+          </div>
+
+          <div class="flex-1 px-5 pt-6 pb-5">
+            <div class="max-w-sm mx-auto">
+
+              <div class="login-card rounded-2xl p-5">
+                <div class="flex items-center gap-2.5 mb-5">
+                  <div class="w-8 h-8 rounded-lg bg-campeao-greenSoft flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-campeao-greenDark" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 7a3 3 0 1 1-6 0"/><path d="M12 12v6"/><path d="M8 14h8"/><rect x="4" y="6" width="16" height="15" rx="2"/></svg>
+                  </div>
+                  <div>
+                    <h2 class="text-sm font-bold text-campeao-ink leading-tight">Bem-vindo de volta</h2>
+                    <p class="text-[11px] text-campeao-muted">Entre com seus dados de acesso</p>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="relative">
+                    <input
+                      id="loginId"
+                      type="text"
+                      value="${escapeHtml(appState.loginId)}"
+                      oninput="appState.loginId = this.value"
+                      onkeydown="if(event.key === 'Enter'){event.preventDefault(); handleLogin();}"
+                      maxlength="80"
+                      placeholder=" "
+                      autocomplete="username"
+                      autocapitalize="none"
+                      spellcheck="false"
+                      class="login-input login-input-with-right-icon w-full px-4 rounded-2xl border border-campeao-line text-sm font-semibold text-campeao-ink"
+                    />
+                    <label for="loginId" class="login-label text-xs font-semibold text-campeao-muted">Matrícula ou usuário</label>
+                    <svg class="login-user-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
+
+                  <div class="relative">
+                    <input
+                      id="loginPassword"
+                      type="${appState.loginPinVisible ? 'text' : 'password'}"
+                      value="${escapeHtml(appState.loginPin)}"
+                      oninput="appState.loginPin = this.value.slice(0, 15); this.value = appState.loginPin; document.getElementById('loginPasswordCount').textContent = appState.loginPin.length + '/15'"
+                      onkeydown="if(event.key === 'Enter'){event.preventDefault(); handleLogin();}"
+                      maxlength="15"
+                      required
+                      placeholder=" "
+                      autocomplete="current-password"
+                      class="login-input login-input-with-right-action w-full px-4 rounded-2xl border border-campeao-line text-sm font-semibold text-campeao-ink"
+                    />
+                    <label for="loginPassword" class="login-label text-xs font-semibold text-campeao-muted">Senha</label>
+                    <button
+                      type="button"
+                      onclick="toggleLoginPassword()"
+                      aria-label="${appState.loginPinVisible ? 'Ocultar senha' : 'Mostrar senha'}"
+                      title="${appState.loginPinVisible ? 'Ocultar senha' : 'Mostrar senha'}"
+                      class="login-show-pass cursor-pointer"
+                    >
+                      ${appState.loginPinVisible ? `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/>
+                          <circle cx="12" cy="12" r="2.75"/>
+                          <path d="M4 20 20 4"/>
+                        </svg>
+                      ` : `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M3 12c0-3.5 4-8 9-8s9 4.5 9 8-4 8-9 8-9-4.5-9-8Z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      `}
+                    </button>
+                  </div>
+
+                  <label class="flex items-center gap-2.5 rounded-xl border border-campeao-line bg-campeao-surface/40 px-3 py-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      ${appState.rememberCredentials ? 'checked' : ''}
+                      onchange="appState.rememberCredentials=this.checked"
+                      class="h-4 w-4 accent-campeao-greenDark"
+                    />
+                    <span>
+                      <span class="block text-xs font-semibold text-campeao-ink">Salvar login e senha</span>
+                      <span class="login-remember-hint">Sessão mantida até você sair da conta</span>
+                    </span>
+                  </label>
+
+                  <div class="flex items-center justify-between">
+                    <p id="loginPasswordCount" class="text-[10px] text-campeao-muted">${appState.loginPin.length}/15</p>
+                    ${loginError ? `<p role="alert" class="text-[10px] font-semibold text-red-600 flex items-center gap-1"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>${escapeHtml(loginError)}</p>` : ''}
+                  </div>
+                </div>
+
+                <button
+                  onclick="handleLogin()"
+                  class="login-btn-primary w-full py-3 rounded-xl text-sm font-bold mt-5 ${appState.loginPending ? 'opacity-50 pointer-events-none' : ''}"
+                  ${appState.loginPending ? 'disabled' : ''}
+                >
+                  <span class="flex items-center justify-center gap-2">
+                    ${appState.loginPending ? '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 2 5.373 2 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Entrando...' : '<span>Entrar na minha conta</span><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>'}
+                  </span>
+                </button>
+
+                <p class="text-center text-[9px] leading-relaxed text-campeao-subtle mt-3.5">
+                  <svg class="inline w-2.5 h-2.5 mr-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  ${appState.rememberCredentials
+                    ? 'Login protegido e mantido neste aparelho até sair da conta'
+                    : 'A senha não fica salva quando esta opção está desativada'}
+                </p>
+              </div>
+
+              <div class="flex items-center justify-center gap-3 mt-5">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                  <span class="text-[9px] font-medium text-campeao-muted">Conexão segura</span>
+                </div>
+                <div class="w-px h-3 bg-campeao-line"></div>
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-3 h-3 text-campeao-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+                  <span class="text-[9px] font-medium text-campeao-muted">v1.0.0</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Valida as credenciais e inicia a autenticação pela ponte Android.
+    // ---------------------------------------------------------------------------
+    function handleLogin() {
+      loginError = '';
+      if (!appState.loginId.trim() || !appState.loginPin) {
+        loginError = 'Informe sua matrícula e senha.';
+        renderApp();
+        return;
+      }
+      if (appState.loginPin.length > 15) {
+        loginError = 'A senha pode ter no máximo 15 caracteres.';
+        renderApp();
+        return;
+      }
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        appState.loginPending = true;
+        renderApp();
+        window.AndroidApp.login(appState.loginId.trim(), appState.loginPin);
+        return;
+      } else {
+        try {
+          window.localStorage.setItem('santriRankRememberedLogin', appState.loginId.trim());
+        } catch (error) {
+          console.warn('Não foi possível salvar a matrícula neste navegador.', error);
+        }
+      }
+
+      appState.loginPin = '';
+      appState.viewMode = 'single';
+      setViewMode('single');
+      appState.activeScreen = appState.userRole === 'adm' ? 'relatorios' : 'ranking';
+      renderApp();
+      showToast(
+        appState.userRole === 'adm'
+          ? 'Sessão ADM iniciada.'
+          : 'Sessão de Operador iniciada.'
+      );
+    }
+
+    // =========================================================================
+    // Ranking de desempenho
+    // =========================================================================
+
+    function renderRankingScreen() {
+      const sorted = getSortedEmployees();
+      const top3 = sorted.slice(0, 3);
+      const rest = sorted.slice(3);
+
+      return `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between pt-1">
+            <div>
+              <h1 class="text-lg font-bold tracking-tight text-campeao-ink">Ranking</h1>
+              <p class="text-[11px] text-campeao-muted">Campeão da Construção • Brasília</p>
+            </div>
+
+            <div class="flex bg-white p-0.5 rounded-xl border border-campeao-line">
+              ${Object.entries(PERIODS).map(([key, info]) => {
+                const active = appState.rankingPeriod === key;
+                return `
+                  <button
+                    onclick="setRankingPeriod('${key}')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-medium transition cursor-pointer ${
+                      active ? 'bg-campeao-greenDark text-white' : 'text-campeao-muted hover:text-campeao-ink'
+                    }"
+                  >
+                    ${info.label}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-0.5">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-campeao-muted">Destaques</span>
+              <span class="text-[11px] text-campeao-subtle">Top 3</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 items-end">
+              ${top3[1] ? renderPodiumCard(top3[1], 2, 0) : ''}
+              ${top3[0] ? renderPodiumCard(top3[0], 1, 1) : ''}
+              ${top3[2] ? renderPodiumCard(top3[2], 3, 2) : ''}
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-0.5">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-campeao-muted">Perfis</span>
+              <span class="text-[11px] text-campeao-subtle">Pontuação</span>
+            </div>
+
+            <div class="hairline-card rounded-2xl divide-y divide-campeao-line overflow-hidden">
+              ${rest.map((emp, idx) => renderProfileRow(emp, idx + 4, idx + 3)).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPodiumCard(emp, pos, animationIndex) {
+      const stats = getEmployeePeriodStats(emp);
+      const pts = stats.points;
+      const firstName = emp.nome.split(' ')[0];
+
+      if (pos === 1) {
+        return `
+          <button
+            onclick="openProfileModal('${emp.id}')"
+            style="--ranking-index: ${animationIndex}"
+            class="ranking-enter podio-gold relative rounded-2xl p-2.5 pt-3.5 min-h-[162px] flex flex-col items-center justify-between text-center ring-1 ring-amber-400/50 transition hover:brightness-[0.99] cursor-pointer"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span class="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-bold tracking-wide">1º LÍDER</span>
+              ${ICONS.trophy}
+            </div>
+
+            <div class="my-1.5 flex flex-col items-center">
+              <div class="relative mt-2 mb-1.5">
+                <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-amber-500 drop-shadow-xs">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 18h18v2H3v-2zm1.5-10 4.5 4.5L12 6l3 6.5L19.5 8 18 16H6L4.5 8z" />
+                  </svg>
+                </div>
+                <div class="w-11 h-11 rounded-full bg-white border-2 border-amber-400 flex items-center justify-center text-xs font-bold text-campeao-ink shadow-xs">
+                  ${getInitials(emp.nome)}
+                </div>
+              </div>
+              <p class="text-xs font-bold text-campeao-ink truncate max-w-[88px]">${firstName}</p>
+              <p class="text-[10px] text-campeao-amber font-medium truncate max-w-[88px]">${emp.cargo.split(' ')[0]}</p>
+            </div>
+
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-xs font-bold text-campeao-amber tabular-nums">
+              ${pts.toLocaleString('pt-BR')} pts
+            </span>
+          </button>
+        `;
+      }
+
+      const cfg =
+        pos === 2
+          ? {
+              cardClass: 'podio-silver min-h-[132px]',
+              icon: ICONS.trophySilver,
+              badgeText: '2º',
+              ptsClass: 'text-campeao-muted'
+            }
+          : {
+              cardClass: 'podio-bronze min-h-[124px]',
+              icon: ICONS.trophyBronze,
+              badgeText: '3º',
+              ptsClass: 'text-orange-700'
+            };
+
+      return `
+        <button
+          onclick="openProfileModal('${emp.id}')"
+          style="--ranking-index: ${animationIndex}"
+          class="ranking-enter ${cfg.cardClass} rounded-2xl p-2.5 flex flex-col items-center justify-between text-center transition hover:brightness-[0.99] cursor-pointer"
+        >
+          <div class="w-full flex items-center justify-between">
+            <span class="text-[10px] font-semibold text-campeao-muted">${cfg.badgeText}</span>
+            ${cfg.icon}
+          </div>
+
+          <div class="my-1.5 flex flex-col items-center">
+            <div class="w-8 h-8 rounded-full bg-white border border-campeao-line flex items-center justify-center text-[11px] font-bold text-campeao-ink mb-1.5">
+              ${getInitials(emp.nome)}
+            </div>
+            <p class="text-xs font-semibold text-campeao-ink truncate max-w-[84px]">${firstName}</p>
+            <p class="text-[10px] text-campeao-muted truncate max-w-[84px]">${emp.cargo.split(' ')[0]}</p>
+          </div>
+
+          <span class="text-xs font-bold ${cfg.ptsClass} tabular-nums">${pts.toLocaleString('pt-BR')}</span>
+        </button>
+      `;
+    }
+
+    function renderProfileRow(emp, pos, animationIndex) {
+      const pts = getEmployeePeriodStats(emp).points;
+      return `
+        <button
+          onclick="openProfileModal('${emp.id}')"
+          style="--ranking-index: ${animationIndex}"
+          class="ranking-enter w-full px-3.5 py-2.5 flex items-center gap-3 text-left hover:bg-campeao-surface/70 transition cursor-pointer"
+        >
+          <span class="w-5 text-xs font-semibold text-campeao-subtle tabular-nums">${pos}</span>
+
+          <div class="w-8 h-8 rounded-full bg-campeao-surface border border-campeao-line flex items-center justify-center text-[11px] font-semibold text-campeao-ink shrink-0">
+            ${getInitials(emp.nome)}
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <p class="text-[13px] font-semibold text-campeao-ink truncate">${emp.nome}</p>
+            <p class="text-[11px] text-campeao-muted truncate">${emp.cargo}</p>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-xs font-semibold text-campeao-greenDark tabular-nums">${pts.toLocaleString('pt-BR')}</span>
+            ${ICONS.chevron}
+          </div>
+        </button>
+      `;
+    }
+
+    // =========================================================================
+    // Scanner de notas
+    // =========================================================================
+
+    function clearScanAnalysisPreview() {
+      if (window.AndroidApp) {
+        if (appState.scanAnalysisRequestId) {
+          window.AndroidApp.cancelScanAnalysis(appState.scanAnalysisRequestId);
+        }
+        if (appState.scanAnalysis?.token) {
+          window.AndroidApp.cancelScanAnalysis(appState.scanAnalysis.token);
+        }
+      }
+      appState.scanAnalysis = null;
+      appState.scanAnalysisLoading = false;
+      appState.scanAnalysisError = '';
+      appState.scanAnalysisRequestId = '';
+    }
+
+    function renderScanAnalysisPreview() {
+      const analysis = appState.scanAnalysis;
+      if (!analysis) return '';
+      const adjustment = Math.round((Number(analysis.itemWeightFactor || 1) - 1) * 100);
+      const adjustmentLabel = adjustment > 0 ? `+${adjustment}%` : `${adjustment}%`;
+      const items = Array.isArray(analysis.items) ? analysis.items : [];
+      return `
+        <section class="rounded-2xl border border-campeao-green/25 bg-campeao-greenSoft/50 p-3.5 space-y-3">
+          <div>
+            <p class="text-xs font-bold text-campeao-ink">Prévia calculada pela IA</p>
+            <p class="text-[10px] text-campeao-muted mt-0.5">
+              Nota ${escapeHtml(analysis.number || 'sem número identificado')} · confiança média
+              ${Math.round((Number(analysis.confidence) || 0) * 100)}%
+            </p>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="rounded-xl bg-white border border-campeao-line p-2.5">
+              <p class="text-[10px] text-campeao-muted">Pontuação base</p>
+              <p class="text-lg font-bold text-campeao-ink">${Number(analysis.basePoints || 0).toLocaleString('pt-BR')} pts</p>
+            </div>
+            <div class="rounded-xl bg-white border border-campeao-green/25 p-2.5">
+              <p class="text-[10px] text-campeao-greenDark">Sugestão IA</p>
+              <p class="text-lg font-bold text-campeao-greenDark">${Number(analysis.suggestedPoints || 0).toLocaleString('pt-BR')} pts</p>
+            </div>
+          </div>
+          <div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-[10px] font-bold text-amber-900">Erros encontrados pela IA</p>
+                <p class="text-[9px] text-amber-800">Cada erro reduz pontos conforme a tabela vigente.</p>
+              </div>
+              <span class="min-w-10 rounded-lg bg-white px-2.5 py-1.5 text-center text-sm font-bold text-amber-900 border border-amber-200">
+                ${Number(analysis.errorCount || 0)}
+              </span>
+            </div>
+          </div>
+          <p class="text-[10px] text-campeao-muted">
+            Ajuste de ${adjustmentLabel} nos pontos por item/SKU
+            (${Number(analysis.baseItemPoints || 0).toLocaleString('pt-BR')} → ${Number(analysis.suggestedItemPoints || 0).toLocaleString('pt-BR')} pts).
+            Demais critérios seguem a tabela vigente. A nota só entra no ranking após aprovação do ADM.
+          </p>
+          ${items.length ? `
+            <div class="space-y-1.5">
+              <p class="text-[10px] font-semibold text-campeao-ink">Itens reconhecidos</p>
+              ${items.map((item) => `
+                <div class="rounded-xl bg-white/80 px-2.5 py-2">
+                  <div class="flex justify-between gap-2">
+                    <span class="text-[10px] font-semibold text-campeao-ink">${escapeHtml(item.description || 'Item sem descrição')}</span>
+                    <span class="text-[10px] text-campeao-muted shrink-0">${Number(item.quantity || 0).toLocaleString('pt-BR')} ${escapeHtml(item.unit || '')}</span>
+                  </div>
+                  <p class="text-[10px] text-campeao-muted">
+                    ${escapeHtml(item.category || 'Categoria não definida')} · complexidade ${Number(item.complexity || 3)}/5 · confiança ${Math.round((Number(item.confidence) || 0) * 100)}%
+                  </p>
+                  ${item.reason ? `<p class="text-[10px] text-campeao-muted">${escapeHtml(item.reason)}</p>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : '<p class="text-[10px] text-campeao-muted">Nenhum item classificável; foi mantido o peso neutro.</p>'}
+          <button type="button" onclick="confirmScanAnalysis()"
+            class="btn-primary w-full py-2.5 rounded-xl text-xs font-semibold cursor-pointer"
+            ${appState.scanConfirmRequestId ? 'disabled' : ''}>
+            ${appState.scanConfirmRequestId ? 'Enviando para aprovação…' : 'Confirmar prévia e enviar ao ADM'}
+          </button>
+        </section>
+      `;
+    }
+
+    function renderAiAuditSummary(note) {
+      if (!note.aiAnalysis) return '';
+      try {
+        const analysis = JSON.parse(note.aiAnalysis);
+        const items = Array.isArray(analysis.items) ? analysis.items : [];
+        if (!items.length) return '';
+        const factor = Number(analysis.itemWeightFactor) || 1;
+        const adjustment = Math.round((factor - 1) * 100);
+        const label = adjustment > 0 ? `+${adjustment}%` : `${adjustment}%`;
+        return `
+          <div class="rounded-lg bg-campeao-surface/80 p-2">
+            <p class="text-[10px] font-semibold text-campeao-ink">Análise IA · ajuste SKU ${label}</p>
+            <p class="text-[10px] text-campeao-muted">
+              ${items.slice(0, 5).map((item) =>
+                `${escapeHtml(item.description || 'Item')} (${Number(item.complexity || 3)}/5)`
+              ).join(' · ')}
+              ${items.length > 5 ? ` · +${items.length - 5} itens` : ''}
+            </p>
+          </div>
+        `;
+      } catch (error) {
+        console.warn('Não foi possível exibir a análise IA da nota.', error);
+        return '<p class="text-[10px] text-amber-800">Análise da IA indisponível para esta nota.</p>';
+      }
+    }
+
+    function renderScannerScreen() {
+      const hasPhoto = Boolean(appState.scanPhotoName);
+      const scanLocked = Boolean(appState.scanConfirmRequestId);
+      const scanEmployees = appState.userRole === 'operador'
+        ? appState.employees.filter((employee) =>
+            String(employee.matricula || '').toLowerCase() === String(appState.loginId || '').toLowerCase()
+          )
+        : appState.employees.filter((employee) => employee.ativo !== false);
+
+      return `
+        <div class="space-y-4">
+          <div class="pt-1">
+            <h1 class="text-lg font-bold tracking-tight text-campeao-ink">Scanner</h1>
+            <p class="text-[11px] text-campeao-muted">Envie a foto da nota e adicione uma observação</p>
+          </div>
+
+          <!-- Prévia da imagem da nota -->
+          <div class="hairline-card rounded-3xl p-4 space-y-3">
+            ${hasPhoto ? `
+              <div class="rounded-2xl bg-campeao-greenSoft/70 border border-campeao-green/25 p-4 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl bg-white border border-campeao-green/20 flex items-center justify-center text-campeao-greenDark shrink-0">
+                    ${appState.scanPhotoSource === 'camera' ? ICONS.camera : ICONS.paperclip}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-semibold text-campeao-ink truncate">${escapeHtml(appState.scanPhotoName)}</p>
+                    <p class="text-[10px] text-campeao-greenDark font-medium">
+                      ${appState.scanPhotoSource === 'camera' ? 'Capturada pela câmera' : 'Imagem anexada'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onclick="clearScanPhoto()"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-campeao-muted hover:text-campeao-ink bg-white border border-campeao-line cursor-pointer"
+                  ${scanLocked ? 'disabled' : ''}
+                >
+                  Trocar
+                </button>
+              </div>
+            ` : `
+              <div class="rounded-2xl border border-dashed border-campeao-line bg-campeao-surface/70 py-7 px-4 text-center space-y-1.5">
+                <div class="mx-auto w-10 h-10 rounded-2xl bg-white border border-campeao-line flex items-center justify-center text-campeao-greenDark">
+                  ${ICONS.camera}
+                </div>
+                <p class="text-xs font-semibold text-campeao-ink">Nenhuma foto selecionada</p>
+                <p class="text-[11px] text-campeao-muted">Tire uma foto da nota ou anexe da galeria</p>
+              </div>
+            `}
+
+            <!-- Ações para capturar ou anexar uma imagem -->
+            <div class="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onclick="triggerScanCapture()"
+                class="btn-primary py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                ${scanLocked ? 'disabled' : ''}
+              >
+                ${ICONS.camera}
+                <span>Tirar Foto</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="triggerScanAttach()"
+                class="btn-ghost py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                ${scanLocked ? 'disabled' : ''}
+              >
+                ${ICONS.paperclip}
+                <span>Anexar Foto</span>
+              </button>
+              <input
+                id="scanPhotoInput"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                ${scanLocked ? 'disabled' : ''}
+                onchange="handleAttachPhoto(event)"
+              />
+            </div>
+          </div>
+
+          <!-- Observação da nota -->
+          <div class="hairline-card rounded-3xl p-4 space-y-3">
+            ${appState.userRole === 'adm' ? `
+              <div>
+                <label for="scanEmployee" class="block text-xs font-semibold text-campeao-ink mb-1">Colaborador</label>
+                <select
+                  id="scanEmployee"
+                  onchange="clearScanAnalysisPreview(); appState.scanEmployeeId = this.value; saveAppState(); renderApp()"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-campeao-line bg-campeao-surface/50 text-xs text-campeao-ink"
+                  ${scanLocked ? 'disabled' : ''}
+                >
+                  <option value="">Selecione o colaborador</option>
+                  ${scanEmployees.map((employee) => `
+                    <option value="${escapeHtml(employee.id)}" ${appState.scanEmployeeId === employee.id ? 'selected' : ''}>
+                      ${escapeHtml(employee.nome)}
+                    </option>
+                  `).join('')}
+                </select>
+              </div>
+            ` : `
+              <div class="rounded-xl border border-campeao-green/20 bg-campeao-greenSoft/60 px-3.5 py-3">
+                <p class="text-[9px] font-bold uppercase tracking-wide text-campeao-greenDark">Colaborador vinculado</p>
+                <p class="mt-1 text-xs font-semibold text-campeao-ink">
+                  ${escapeHtml(scanEmployees[0]?.nome || 'Conta não vinculada')}
+                </p>
+                ${!scanEmployees.length
+                  ? '<p class="mt-1 text-[10px] text-red-700">Fale com o administrador para vincular sua conta.</p>'
+                  : ''}
+              </div>
+            `}
+            <div>
+              <label class="block text-xs font-semibold text-campeao-ink mb-1">Observação</label>
+              <textarea
+                rows="3"
+                placeholder="Ex.: Carga conferida no pátio SIA, cliente aguardando..."
+                oninput="clearScanAnalysisPreview(); appState.scanObservation = this.value"
+                class="w-full px-3.5 py-2.5 rounded-2xl border border-campeao-line bg-campeao-surface/50 text-xs text-campeao-ink placeholder:text-campeao-subtle focus:outline-none focus:bg-white focus:border-campeao-green transition resize-none"
+                ${scanLocked ? 'disabled' : ''}
+              >${escapeHtml(appState.scanObservation)}</textarea>
+            </div>
+
+            <button
+              type="button"
+              onclick="submitSimpleScan()"
+              class="btn-primary w-full py-2.5 rounded-xl text-xs font-semibold cursor-pointer"
+              ${appState.scanAnalysisLoading || appState.scanConfirmRequestId ? 'disabled' : ''}
+            >
+              ${appState.scanAnalysisLoading ? 'Analisando nota com IA…' : IS_ANDROID_APP ? 'Analisar e calcular prévia' : 'Enviar Nota'}
+            </button>
+            ${appState.scanAnalysisLoading ? `
+              <p class="text-[10px] text-campeao-muted text-center">A IA está lendo os itens. Isso pode levar alguns segundos.</p>
+            ` : ''}
+            ${appState.scanAnalysisError ? `
+              <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                <p class="text-[10px] text-amber-900">${escapeHtml(appState.scanAnalysisError)}</p>
+                <button type="button" onclick="submitManualScan()"
+                  class="btn-ghost w-full py-2 rounded-lg text-[10px] font-semibold cursor-pointer">
+                  Enviar sem análise da IA (0 pontos, revisão do ADM)
+                </button>
+              </div>
+            ` : ''}
+            ${renderScanAnalysisPreview()}
+          </div>
+        </div>
+      `;
+    }
+
+    let pendingPhotoSource = 'camera';
+
+    function triggerScanCapture() {
+      pendingPhotoSource = 'camera';
+      const input = document.getElementById('scanPhotoInput');
+      if (!input) return;
+      input.value = '';
+      input.setAttribute('capture', 'environment');
+      input.click();
+    }
+
+    function triggerScanAttach() {
+      pendingPhotoSource = 'anexo';
+      const input = document.getElementById('scanPhotoInput');
+      if (!input) return;
+      input.value = '';
+      input.removeAttribute('capture');
+      input.click();
+    }
+
+    function handleAttachPhoto(event) {
+      const file = event.target?.files?.[0];
+      if (!file) return;
+      clearScanAnalysisPreview();
+      selectedPhotoFile = file;
+      appState.scanPhotoSource = pendingPhotoSource;
+      appState.scanPhotoName = file.name;
+      renderApp();
+      showToast(pendingPhotoSource === 'camera' ? 'Foto capturada.' : 'Foto anexada.');
+    }
+
+    function clearScanPhoto() {
+      clearScanAnalysisPreview();
+      selectedPhotoFile = null;
+      appState.scanPhotoSource = '';
+      appState.scanPhotoName = '';
+      renderApp();
+    }
+
+    function submitSimpleScan() {
+      if (!appState.scanPhotoName) {
+        showToast('Tire ou anexe uma foto antes de enviar.');
+        return;
+      }
+
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        if (!appState.scanEmployeeId) {
+          showToast('Selecione o colaborador da nota.');
+          return;
+        }
+        if (!selectedPhotoFile) {
+          showToast('Selecione ou tire a foto novamente.');
+          return;
+        }
+        clearScanAnalysisPreview();
+        const requestId = `analysis-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        appState.scanAnalysisLoading = true;
+        appState.scanAnalysisRequestId = requestId;
+        renderApp();
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            if (appState.scanAnalysisRequestId !== requestId) return;
+            window.AndroidApp.analyzeScan(
+              appState.scanEmployeeId,
+              appState.scanPhotoName,
+              appState.scanPhotoSource,
+              appState.scanObservation,
+              String(reader.result || ''),
+              requestId
+            );
+          } catch (error) {
+            console.error('Falha ao analisar a nota.', error);
+            appState.scanAnalysisLoading = false;
+            appState.scanAnalysisRequestId = '';
+            appState.scanAnalysisError = 'Não foi possível iniciar a análise. Tente novamente.';
+            renderApp();
+          }
+        };
+        reader.onerror = () => {
+          appState.scanAnalysisLoading = false;
+          appState.scanAnalysisRequestId = '';
+          appState.scanAnalysisError = 'Não foi possível ler a foto selecionada.';
+          renderApp();
+        };
+        reader.readAsDataURL(selectedPhotoFile);
+        return;
+      }
+
+      const leader = getSortedEmployees()[0] || appState.employees[0];
+      const earnedPts = 145;
+      leader.pontosSemana += earnedPts;
+      leader.notas += 1;
+
+      appState.notes.unshift({
+        id: 'note-' + Date.now(),
+        autor: leader.nome,
+        titulo: `${appState.scanPhotoName} (+${earnedPts} pts)`,
+        detalhe: appState.scanObservation.trim() || 'Nota enviada sem observação adicional.',
+        tempo: 'Agora'
+      });
+
+      appState.scanPhotoSource = '';
+      appState.scanPhotoName = '';
+      appState.scanObservation = '';
+      selectedPhotoFile = null;
+      appState.activeScreen = 'ranking';
+      renderApp();
+      showToast(`Nota enviada (+${earnedPts} pts computados).`);
+    }
+
+    function confirmScanAnalysis() {
+      if (!appState.scanAnalysis?.token || !window.AndroidApp) {
+        showToast('A prévia expirou. Analise a imagem novamente.');
+        return;
+      }
+      if (appState.scanConfirmRequestId) return;
+      const requestId = `confirm-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      appState.scanConfirmRequestId = requestId;
+      renderApp();
+      try {
+        window.AndroidApp.confirmAnalyzedScan(appState.scanAnalysis.token, requestId);
+      } catch (error) {
+        console.error('Falha ao confirmar a nota analisada.', error);
+        appState.scanConfirmRequestId = '';
+        showToast('Não foi possível enviar a nota. Tente novamente.');
+        renderApp();
+      }
+    }
+
+    function submitManualScan() {
+      if (!IS_ANDROID_APP || !window.AndroidApp || !selectedPhotoFile || !appState.scanEmployeeId) {
+        showToast('Selecione um colaborador e uma imagem válida.');
+        return;
+      }
+      if (appState.scanAnalysisLoading || appState.scanConfirmRequestId) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const cb = 'onSubmitScanResult';
+        window[cb] = function (resultJson) {
+          delete window[cb];
+          try {
+            const result = JSON.parse(resultJson);
+            if (!result.success) {
+              showToast(result.message || 'Não foi possível registrar a nota.');
+              return;
+            }
+            clearScanAnalysisPreview();
+            appState.scanPhotoSource = '';
+            appState.scanPhotoName = '';
+            appState.scanObservation = '';
+            selectedPhotoFile = null;
+            applyNativeBootstrap();
+            appState.activeScreen = 'equipe';
+            appState.equipeTab = 'notas';
+            appState.noteStatusFilter = 'queue';
+            renderApp();
+            showToast(result.message);
+          } catch (error) {
+            console.error('Falha ao registrar nota manual.', error);
+            showToast('Não foi possível registrar a nota.');
+          }
+        };
+        window.AndroidApp.submitScan(
+          appState.scanEmployeeId,
+          appState.scanPhotoName,
+          appState.scanObservation,
+          String(reader.result || ''),
+          cb
+        );
+      };
+      reader.onerror = () => showToast('Não foi possível ler a foto selecionada.');
+      reader.readAsDataURL(selectedPhotoFile);
+    }
+
+    function selectOcrPreset(i) {
+      appState.ocrPresetIdx = i;
+      appState.ocrVolume = OCR_PRESETS[i].volumeM3;
+      appState.ocrPeso = OCR_PRESETS[i].pesoKg;
+      renderApp();
+    }
+
+    function confirmOcrPoints() {
+      const pts = calcularPontuacao(appState.ocrVolume, appState.ocrPeso);
+      const emp = appState.employees.find((e) => e.id === appState.ocrEmployeeId) || appState.employees[0];
+      const preset = OCR_PRESETS[appState.ocrPresetIdx];
+
+      emp.pontosSemana += pts;
+      emp.volumeM3 = Number((emp.volumeM3 + Number(appState.ocrVolume || 0)).toFixed(1));
+      emp.pesoKg += Number(appState.ocrPeso || 0);
+      emp.notas += 1;
+
+      appState.notes.unshift({
+        id: 'note-' + Date.now(),
+        autor: emp.nome,
+        titulo: `${preset.code} registrada (+${pts} pts)`,
+        detalhe: `${appState.ocrVolume} m³ • ${Number(appState.ocrPeso).toLocaleString('pt-BR')} kg`,
+        tempo: 'Agora'
+      });
+
+      appState.activeScreen = 'ranking';
+      renderApp();
+      showToast(`+${pts} pts adicionados para ${emp.nome}.`);
+    }
+
+    // =========================================================================
+    // Equipe e notas
+    // =========================================================================
+
+    function getEquipeNoteStatus(note) {
+      return note.status || (note.noteId ? 'PENDENTE' : 'REGISTRO');
+    }
+
+    function isNoteAwaitingReview(note) {
+      const status = getEquipeNoteStatus(note);
+      return status === 'PENDENTE' || status === 'REVISAR';
+    }
+
+    function renderEquipeScreen() {
+      const isEquipe = appState.equipeTab === 'equipe';
+      const isAdmin = appState.userRole === 'adm';
+      const noteForm = appState.noteForm;
+      const allNotes = appState.notes;
+      const pendingCount = allNotes.filter((note) => getEquipeNoteStatus(note) === 'PENDENTE').length;
+      const reviewCount = allNotes.filter((note) => getEquipeNoteStatus(note) === 'REVISAR').length;
+      const approvedCount = allNotes.filter((note) => getEquipeNoteStatus(note) === 'APROVADO').length;
+      const reviewQueueCount = pendingCount + reviewCount;
+      const noteFilter = isAdmin ? appState.noteStatusFilter : 'all';
+      const employees = appState.employees.filter((employee) => {
+        const matchesQuery = `${employee.nome} ${employee.matricula} ${employee.cargo} ${employee.setor}`
+          .toLowerCase()
+          .includes(appState.employeeSearch.toLowerCase());
+        return matchesQuery && (isAdmin || employee.ativo !== false);
+      });
+      const notes = allNotes.filter((note) => {
+        const status = getEquipeNoteStatus(note);
+        if (noteFilter === 'queue') return isNoteAwaitingReview(note);
+        return noteFilter === 'all' || status === noteFilter;
+      });
+      const activeEmployees = appState.employees.filter((employee) => employee.ativo !== false).length;
+      const inactiveEmployees = appState.employees.length - activeEmployees;
+
+      return `
+        <div class="space-y-4 pb-3">
+          <header class="hairline-card rounded-2xl p-4 space-y-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <span class="text-[9px] font-bold uppercase tracking-[0.14em] text-campeao-greenDark">Gestão da unidade</span>
+                <h1 class="mt-1 text-lg font-bold tracking-tight text-campeao-ink">Equipe &amp; Notas</h1>
+                <p class="mt-1 text-[11px] text-campeao-muted">Brasília-DF · consulta da equipe e conferência de notas.</p>
+              </div>
+              <span class="shrink-0 rounded-full bg-campeao-greenSoft px-2.5 py-1 text-[10px] font-bold text-campeao-greenDark">
+                ${appState.employees.length} pessoas
+              </span>
+            </div>
+            <div role="tablist" aria-label="Seções da equipe" class="grid grid-cols-2 gap-1 rounded-xl bg-campeao-surface p-1">
+              <button
+                type="button" role="tab" aria-selected="${isEquipe}"
+                onclick="appState.equipeTab = 'equipe'; renderApp();"
+                class="rounded-lg px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+                  isEquipe ? 'bg-campeao-greenDark text-white' : 'text-campeao-muted'
+                }"
+              >
+                Equipe
+              </button>
+              <button
+                type="button" role="tab" aria-selected="${!isEquipe}"
+                onclick="appState.equipeTab = 'notas'; appState.noteStatusFilter = appState.userRole === 'adm' ? 'queue' : 'all'; renderApp();"
+                class="rounded-lg px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+                  !isEquipe ? 'bg-campeao-greenDark text-white' : 'text-campeao-muted'
+                }"
+              >
+                Notas
+              </button>
+            </div>
+          </header>
+
+          ${isEquipe ? `
+            <section class="grid grid-cols-3 gap-2" aria-label="Resumo da equipe">
+              <div class="hairline-card rounded-xl p-3">
+                <p class="text-[9px] font-semibold uppercase tracking-wide text-campeao-muted">Ativos</p>
+                <p class="mt-1 text-lg font-bold text-campeao-greenDark">${activeEmployees}</p>
+              </div>
+              <div class="hairline-card rounded-xl p-3">
+                <p class="text-[9px] font-semibold uppercase tracking-wide text-campeao-muted">Inativos</p>
+                <p class="mt-1 text-lg font-bold text-campeao-ink">${inactiveEmployees}</p>
+              </div>
+              <div class="hairline-card rounded-xl p-3">
+                <p class="text-[9px] font-semibold uppercase tracking-wide text-campeao-muted">Total</p>
+                <p class="mt-1 text-lg font-bold text-campeao-ink">${appState.employees.length}</p>
+              </div>
+            </section>
+            <label class="block text-xs font-semibold text-campeao-ink">Buscar funcionário
+              <input id="employeeSearch" value="${escapeHtml(appState.employeeSearch)}" oninput="updateEmployeeSearch(this.value)"
+                placeholder="Nome, matrícula, cargo ou setor"
+                class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3.5 py-3 text-sm" />
+            </label>
+            <div class="space-y-2.5">
+              ${employees.length ? employees.map((emp) => `
+                <article class="hairline-card rounded-2xl p-3.5 space-y-3">
+                  <div class="flex items-center gap-3">
+                    <button type="button" onclick="openProfileModal('${emp.id}')"
+                      aria-label="Abrir perfil de ${escapeHtml(emp.nome)}"
+                      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-campeao-green/20 bg-campeao-greenSoft text-xs font-bold text-campeao-greenDark">
+                      ${getInitials(emp.nome)}
+                    </button>
+                    <button type="button" onclick="openProfileModal('${emp.id}')" class="min-w-0 flex-1 text-left">
+                      <p class="truncate text-sm font-bold text-campeao-ink">${escapeHtml(emp.nome)}</p>
+                      <p class="mt-0.5 truncate text-[10px] text-campeao-muted">${escapeHtml(emp.matricula || 'Sem matrícula')} · ${escapeHtml(emp.cargo)}</p>
+                      <p class="mt-0.5 truncate text-[10px] text-campeao-muted">${escapeHtml(emp.setor)}</p>
+                    </button>
+                    <span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${
+                      emp.ativo === false ? 'bg-red-50 text-red-700' : 'bg-campeao-greenSoft text-campeao-greenDark'
+                    }">
+                      ${emp.ativo === false ? 'Inativo' : 'Ativo'}
+                    </span>
+                  </div>
+                </article>
+              `).join('') : `
+                <div class="hairline-card rounded-2xl p-6 text-center">
+                  <p class="text-sm font-semibold text-campeao-ink">Nenhum funcionário encontrado</p>
+                  <p class="mt-1 text-xs text-campeao-muted">Tente outra busca ou cadastre um novo funcionário.</p>
+                </div>
+              `}
+            </div>
+          ` : `
+            ${isAdmin ? `
+              <section id="teamNoteAuditQueue" aria-label="Fila de revisão de notas" class="hairline-card rounded-2xl p-3.5 space-y-3 scroll-mt-4">
+                <header class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-campeao-greenDark">Conferência ADM</span>
+                    <h2 class="mt-1 text-sm font-bold text-campeao-ink">Revisão de notas</h2>
+                    <p class="mt-0.5 text-[10px] text-campeao-muted">Confira o anexo e os dados. Os pontos só entram no ranking após a aprovação.</p>
+                  </div>
+                  <span class="shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold ${
+                    reviewQueueCount ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-campeao-green/20 bg-campeao-greenSoft text-campeao-greenDark'
+                  }">${reviewQueueCount} na fila</span>
+                </header>
+
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="rounded-xl bg-amber-50 p-2.5">
+                    <p class="text-[9px] font-medium text-amber-800">Pendentes</p>
+                    <p class="mt-1 text-base font-bold text-amber-900">${pendingCount}</p>
+                  </div>
+                  <div class="rounded-xl bg-campeao-surface p-2.5">
+                    <p class="text-[9px] font-medium text-campeao-muted">Em revisão</p>
+                    <p class="mt-1 text-base font-bold text-campeao-ink">${reviewCount}</p>
+                  </div>
+                  <div class="rounded-xl bg-campeao-greenSoft p-2.5">
+                    <p class="text-[9px] font-medium text-campeao-greenDark">Aprovadas</p>
+                    <p class="mt-1 text-base font-bold text-campeao-greenDark">${approvedCount}</p>
+                  </div>
+                </div>
+
+                <button type="button" onclick="${noteForm ? 'cancelNoteEdit()' : 'startNoteEdit()'}" class="btn-primary w-full rounded-xl py-2.5 text-xs font-semibold">
+                  ${noteForm ? 'Fechar formulário' : '+ Cadastrar nota manualmente'}
+                </button>
+                ${noteForm ? `
+                  <form class="rounded-xl border border-campeao-line bg-campeao-surface p-3.5 space-y-3" onsubmit="saveNoteFromForm(event)">
+                    <div class="flex items-center justify-between">
+                      <h3 class="text-sm font-bold text-campeao-ink">${noteForm.id ? 'Editar nota' : 'Nova nota'}</h3>
+                      <button type="button" onclick="cancelNoteEdit()" class="text-xs font-semibold text-campeao-muted">Cancelar</button>
+                    </div>
+                    <label class="block text-xs font-semibold text-campeao-ink">Funcionário
+                      <select id="noteEmployee" required onchange="appState.noteForm.employeeId=this.value"
+                        class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-sm">
+                        <option value="">Selecione</option>
+                        ${appState.employees.filter((employee) => employee.ativo !== false).map((employee) => `
+                          <option value="${escapeHtml(employee.id)}" ${noteForm.employeeId === employee.id ? 'selected' : ''}>
+                            ${escapeHtml(employee.nome)}
+                          </option>
+                        `).join('')}
+                      </select>
+                    </label>
+                    <label class="block text-xs font-semibold text-campeao-ink">Número da nota
+                      <input id="noteNumber" required maxlength="80" value="${escapeHtml(noteForm.number)}"
+                        oninput="appState.noteForm.number=this.value"
+                        class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-sm" />
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                      ${[
+                        ['noteItemCount', 'Itens / SKUs', noteForm.itemCount, '1'],
+                        ['noteUnitCount', 'Unidades', noteForm.unitCount, '0.1'],
+                        ['noteVolumeM3', 'Volume (m³)', noteForm.volumeM3, '0.01'],
+                        ['noteAreaM2', 'Área (m²)', noteForm.areaM2, '0.01'],
+                        ['noteLinearMeters', 'Metros lineares', noteForm.linearMeters, '0.01'],
+                        ['noteBagCount', 'Sacos / volumes', noteForm.bagCount, '0.1'],
+                        ['noteExecutionMinutes', 'Tempo (min)', noteForm.executionMinutes, '1'],
+                        ['noteErrorCount', 'Erros', noteForm.errorCount, '1']
+                      ].map(([id, label, value, step]) => `
+                        <label class="block text-xs font-semibold text-campeao-ink">${label}
+                          <input id="${id}" type="number" min="0" step="${step}" value="${escapeHtml(value)}"
+                            class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-sm" />
+                        </label>
+                      `).join('')}
+                    </div>
+                    <label class="block text-xs font-semibold text-campeao-ink">Observação
+                      <textarea id="noteObservation" rows="2" maxlength="500"
+                        class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-sm">${escapeHtml(noteForm.observation)}</textarea>
+                    </label>
+                    <p class="text-[10px] text-campeao-muted">A nota será calculada e ficará pendente até a revisão do ADM.</p>
+                    <button type="submit" class="btn-primary w-full rounded-xl py-2.5 text-sm font-semibold">Salvar nota</button>
+                  </form>
+                ` : ''}
+              </section>
+            ` : `
+              <section aria-label="Registrar observação" class="hairline-card rounded-2xl p-3.5 space-y-3">
+                <div>
+                  <h2 class="text-sm font-bold text-campeao-ink">Registrar observação</h2>
+                  <p class="mt-0.5 text-[10px] text-campeao-muted">Relate uma informação sobre a operação da equipe.</p>
+                </div>
+                <label class="block text-xs font-semibold text-campeao-ink">Funcionário
+                  <select id="observationEmployeeId" class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-sm">
+                    <option value="">Selecione</option>
+                    ${appState.employees.filter((employee) => employee.ativo !== false).map((employee) => `
+                      <option value="${escapeHtml(employee.id)}">${escapeHtml(employee.nome)}</option>
+                    `).join('')}
+                  </select>
+                </label>
+                <div class="flex gap-2">
+                  <input id="newNoteField" type="text" maxlength="160" placeholder="Escreva a observação..."
+                    class="min-w-0 flex-1 rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-sm" />
+                  <button type="button" onclick="addNote()" class="btn-primary rounded-xl px-4 text-xs font-semibold">Salvar</button>
+                </div>
+              </section>
+            `}
+
+            <section aria-label="${isAdmin ? 'Notas para revisar e histórico' : 'Notas e registros'}" class="space-y-3">
+              <header class="flex items-end justify-between gap-3">
+                <div>
+                  <h2 class="text-sm font-bold text-campeao-ink">${isAdmin ? 'Notas da equipe' : 'Notas e registros'}</h2>
+                  <p class="mt-0.5 text-[10px] text-campeao-muted">
+                    ${isAdmin ? 'Acompanhe a fila de aprovação e o histórico.' : 'Acompanhe as notas registradas pela equipe.'}
+                  </p>
+                </div>
+                <span class="shrink-0 text-[10px] font-semibold text-campeao-muted">${notes.length} exibida${notes.length === 1 ? '' : 's'}</span>
+              </header>
+              <label class="block text-xs font-semibold text-campeao-ink">Exibir
+                <select aria-label="Filtrar notas" onchange="appState.noteStatusFilter=this.value; renderApp()"
+                  class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-sm">
+                  ${isAdmin ? `<option value="queue" ${noteFilter === 'queue' ? 'selected' : ''}>Aguardando revisão</option>` : ''}
+                  <option value="all" ${noteFilter === 'all' ? 'selected' : ''}>Todas as notas</option>
+                  ${[['PENDENTE', 'Pendentes'], ['REVISAR', 'Em revisão'], ['APROVADO', 'Aprovadas'], ['ESTORNADA', 'Estornadas']].map(([value, label]) => `
+                    <option value="${value}" ${noteFilter === value ? 'selected' : ''}>${label}</option>
+                  `).join('')}
+                </select>
+              </label>
+              <div class="space-y-2.5">
+                ${notes.length ? notes.map((note) => {
+                  const noteId = note.noteId || '';
+                  const status = getEquipeNoteStatus(note);
+                  const statusLabel = {
+                    PENDENTE: 'Pendente',
+                    APROVADO: 'Aprovada',
+                    REVISAR: 'Em revisão',
+                    ESTORNADA: 'Estornada',
+                    REGISTRO: 'Registro'
+                  }[status] || status;
+                  const dateLabel = note.tempo ||
+                    (Number.isFinite(Number(note.createdAt)) && Number(note.createdAt) > 0
+                      ? new Date(Number(note.createdAt)).toLocaleDateString('pt-BR')
+                      : 'Sem data');
+                  const canReview = isAdmin && noteId && isNoteAwaitingReview(note);
+                  const noteHasPhoto = isAdmin && noteId;
+                  return `
+                    <article class="hairline-card overflow-hidden rounded-2xl">
+                      <div class="flex items-start justify-between gap-3 p-3.5">
+                        <div class="min-w-0">
+                          <p class="break-words text-xs font-bold text-campeao-ink">${escapeHtml(note.titulo || 'Nota sem número')}</p>
+                          <p class="mt-1 text-[10px] text-campeao-muted">${escapeHtml(note.autor || 'Funcionário')} · ${escapeHtml(dateLabel)}</p>
+                        </div>
+                        <span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${
+                          status === 'APROVADO' ? 'bg-campeao-greenSoft text-campeao-greenDark' :
+                          status === 'ESTORNADA' ? 'bg-red-50 text-red-700' :
+                          status === 'PENDENTE' || status === 'REVISAR' ? 'bg-amber-50 text-amber-800' :
+                          'bg-campeao-surface text-campeao-muted'
+                        }">${escapeHtml(statusLabel)}</span>
+                      </div>
+                      ${note.detalhe ? `<p class="px-3.5 pb-3 text-[11px] leading-relaxed text-campeao-muted">${escapeHtml(note.detalhe)}</p>` : ''}
+                      ${noteId ? `
+                        <div class="grid grid-cols-2 gap-2 border-t border-campeao-line bg-campeao-surface/50 p-3">
+                          <div class="rounded-lg bg-white p-2.5">
+                            <p class="text-[9px] text-campeao-muted">Pontos previstos</p>
+                            <p class="mt-0.5 text-xs font-bold text-campeao-greenDark">${Number(note.points || 0).toLocaleString('pt-BR')} pts</p>
+                          </div>
+                          <div class="rounded-lg bg-white p-2.5">
+                            <p class="text-[9px] text-campeao-muted">Itens · erros</p>
+                            <p class="mt-0.5 text-xs font-semibold text-campeao-ink">${Number(note.itemCount || 0)} · ${Number(note.errorCount || 0)}</p>
+                          </div>
+                          <div class="rounded-lg bg-white p-2.5">
+                            <p class="text-[9px] text-campeao-muted">Unidades</p>
+                            <p class="mt-0.5 text-xs font-semibold text-campeao-ink">${Number(note.unitCount || 0).toLocaleString('pt-BR')}</p>
+                          </div>
+                          <div class="rounded-lg bg-white p-2.5">
+                            <p class="text-[9px] text-campeao-muted">Volume</p>
+                            <p class="mt-0.5 text-xs font-semibold text-campeao-ink">${Number(note.volumeM3 || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m³</p>
+                          </div>
+                        </div>
+                      ` : ''}
+                      ${isAdmin && noteId ? `
+                        <div class="space-y-2.5 border-t border-campeao-line p-3">
+                          ${renderAiAuditSummary(note)}
+                          ${noteHasPhoto ? `
+                            <button type="button" onclick="toggleNotePhoto('${escapeHtml(noteId)}')"
+                              class="btn-ghost w-full rounded-xl py-2 text-[10px] font-semibold">
+                              ${appState.reviewPhotoNoteId === noteId && appState.reviewPhotoDataUrl ? 'Ocultar anexo' : 'Conferir anexo da nota'}
+                            </button>
+                            ${appState.reviewPhotoNoteId === noteId ? `
+                              ${appState.reviewPhotoRequestId
+                                ? '<p class="text-center text-[10px] text-campeao-muted">Carregando anexo…</p>'
+                                : appState.reviewPhotoDataUrl
+                                  ? `<img src="${appState.reviewPhotoDataUrl}" alt="Anexo da nota ${escapeHtml(note.titulo || '')}"
+                                      class="max-h-80 w-full rounded-xl border border-campeao-line bg-white object-contain" />`
+                                  : appState.reviewPhotoError
+                                    ? `<p class="text-center text-[10px] text-amber-800">${escapeHtml(appState.reviewPhotoError)}</p>`
+                                    : ''}
+                            ` : ''}
+                          ` : ''}
+                          <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="startNoteEdit('${escapeHtml(noteId)}')"
+                              class="btn-ghost rounded-xl py-2 text-[10px] font-semibold">Corrigir dados</button>
+                            ${canReview && status === 'PENDENTE' ? `
+                              <button type="button" onclick="setNoteStatus('${escapeHtml(noteId)}', 'Revisar')"
+                                class="btn-ghost rounded-xl py-2 text-[10px] font-semibold">Solicitar revisão</button>
+                            ` : status === 'APROVADO' ? `
+                              <button type="button" onclick="setNoteStatus('${escapeHtml(noteId)}', 'Revisar')"
+                                class="btn-ghost rounded-xl py-2 text-[10px] font-semibold">Pedir revisão</button>
+                            ` : `<span></span>`}
+                            ${status !== 'ESTORNADA' ? `
+                              <button type="button" onclick="beginCancelNote('${escapeHtml(noteId)}')"
+                                class="rounded-xl border border-red-100 bg-red-50 py-2 text-[10px] font-semibold text-red-700">Estornar nota</button>
+                            ` : `<span></span>`}
+                            ${canReview ? `
+                              <button type="button" onclick="setNoteStatus('${escapeHtml(noteId)}', 'Aprovado')"
+                                class="btn-primary col-span-2 rounded-xl py-2.5 text-xs font-semibold">Aprovar e liberar pontos</button>
+                            ` : ''}
+                          </div>
+                          ${appState.noteCancelId === noteId ? `
+                            <div class="space-y-2 rounded-xl border border-red-100 bg-red-50 p-2.5">
+                              <label class="block text-[10px] font-semibold text-red-900">Motivo do estorno
+                                <input id="noteCancelReason" value="${escapeHtml(appState.noteCancelReason)}"
+                                  oninput="appState.noteCancelReason=this.value" maxlength="250" required
+                                  class="mt-1 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-xs" />
+                              </label>
+                              <div class="flex gap-2">
+                                <button type="button" onclick="cancelNoteFromForm('${escapeHtml(noteId)}')"
+                                  class="rounded-lg bg-red-700 px-3 py-1.5 text-[10px] font-semibold text-white">Confirmar estorno</button>
+                                <button type="button" onclick="appState.noteCancelId=''; appState.noteCancelReason=''; renderApp()"
+                                  class="rounded-lg px-3 py-1.5 text-[10px] text-campeao-muted">Voltar</button>
+                              </div>
+                            </div>
+                          ` : ''}
+                        </div>
+                      ` : ''}
+                    </article>
+                  `;
+                }).join('') : `
+                  <div class="hairline-card rounded-2xl p-6 text-center">
+                    <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full ${
+                      noteFilter === 'queue' ? 'bg-campeao-greenSoft text-campeao-greenDark' : 'bg-campeao-surface text-campeao-muted'
+                    }">${noteFilter === 'queue' ? '✓' : '—'}</div>
+                    <p class="mt-2 text-xs font-bold text-campeao-ink">
+                      ${noteFilter === 'queue' ? 'Nenhuma nota aguardando revisão' : 'Nenhuma nota neste filtro'}
+                    </p>
+                    <p class="mt-1 text-[10px] text-campeao-muted">
+                      ${noteFilter === 'queue' ? 'Quando uma nota for enviada, ela aparecerá nesta fila.' : 'Escolha outro status para consultar as notas.'}
+                    </p>
+                    ${noteFilter === 'queue' ? `
+                      <button type="button" onclick="appState.noteStatusFilter='all'; renderApp()"
+                        class="mt-3 text-[10px] font-semibold text-campeao-greenDark">Ver histórico de notas</button>
+                    ` : ''}
+                  </div>
+                `}
+              </div>
+            </section>
+            ${appState.observations.length ? `
+              <section class="space-y-2">
+                <h2 class="text-xs font-bold text-campeao-ink">Observações da equipe</h2>
+                ${appState.observations.slice(0, 20).map((observation) => `
+                  <article class="hairline-card rounded-xl p-3">
+                    <p class="text-xs font-semibold text-campeao-ink">${escapeHtml(observation.titulo)}</p>
+                    <p class="text-[11px] text-campeao-muted">${escapeHtml(observation.autor)} · ${escapeHtml(observation.tempo)}</p>
+                  </article>
+                `).join('')}
+              </section>
+            ` : ''}
+          `}
+        </div>
+      `;
+    }
+
+    function startEmployeeEdit(employeeId = '') {
+      const employee = appState.employees.find((item) => item.id === employeeId);
+      appState.employeeForm = employee ? {
+        id: employee.id,
+        code: employee.matricula,
+        name: employee.nome,
+        job: employee.cargo,
+        sector: employee.setor,
+        situation: employee.situacao || (employee.ativo === false ? 'AFASTADO' : 'ATIVO'),
+        password: ''
+      } : {
+        id: '',
+        code: '',
+        name: '',
+        job: '',
+        sector: '',
+        situation: 'ATIVO',
+        password: ''
+      };
+      renderApp();
+    }
+
+    function cancelEmployeeEdit() {
+      appState.employeeForm = null;
+      renderApp();
+    }
+
+    function updateEmployeeSearch(value) {
+      const input = document.getElementById('employeeSearch');
+      const cursor = input?.selectionStart ?? value.length;
+      appState.employeeSearch = value;
+      renderApp();
+      const refreshedInput = document.getElementById('employeeSearch');
+      refreshedInput?.focus();
+      refreshedInput?.setSelectionRange(cursor, cursor);
+    }
+
+    function saveEmployeeFromForm(event) {
+      event.preventDefault();
+      const form = appState.employeeForm;
+      if (!form) return;
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        const cb = 'onSaveEmployeeResult';
+        window[cb] = function (resultJson) {
+          delete window[cb];
+          try {
+            const result = JSON.parse(resultJson);
+            if (!result.success) {
+              showToast(result.message || 'Não foi possível salvar o cadastro.');
+              return;
+            }
+            appState.employeeForm = null;
+            applyNativeBootstrap();
+            renderApp();
+            showToast(result.message);
+          } catch (error) {
+            console.error('Falha ao salvar funcionário.', error);
+            showToast('Não foi possível salvar o cadastro do funcionário.');
+          }
+        };
+        window.AndroidApp.saveEmployee(
+          form.id,
+          form.code,
+          form.name,
+          form.job,
+          form.sector,
+          form.situation,
+          form.password,
+          cb
+        );
+        return;
+      }
+      const employee = {
+        ...form,
+        id: form.id || `emp-${Date.now()}`,
+        matricula: form.code,
+        nome: form.name,
+        cargo: form.job,
+        setor: form.sector,
+        ativo: form.situation !== 'AFASTADO',
+        pontosSemana: 0,
+        volumeM3: 0,
+        notas: 0,
+        tier: 'Bronze'
+      };
+      const index = appState.employees.findIndex((item) => item.id === form.id);
+      if (index >= 0) appState.employees[index] = { ...appState.employees[index], ...employee };
+      else appState.employees.push(employee);
+      appState.employeeForm = null;
+      renderApp();
+      showToast('Cadastro salvo.');
+    }
+
+    function saveAdminUserFromForm(event) {
+      event.preventDefault();
+      const usernameInput = document.getElementById('adminUsername');
+      const passwordInput = document.getElementById('adminPassword');
+      const username = String(usernameInput?.value || '').trim().toUpperCase();
+      const password = String(passwordInput?.value || '');
+      if (!/^[A-Z0-9][A-Z0-9._-]{2,31}$/.test(username)) {
+        showToast('Use um usuário de 3 a 32 caracteres: letras, números, ponto, hífen ou sublinhado.');
+        return;
+      }
+      if (password.length < 6 || password.length > 15) {
+        showToast('A senha deve ter de 6 a 15 caracteres.');
+        return;
+      }
+      if (appState.employees.some((employee) =>
+        String(employee.matricula || '').toUpperCase() === username
+      )) {
+        showToast('Esse usuário já está vinculado a um funcionário.');
+        return;
+      }
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        const cb = 'onCreateAdminUserResult';
+        window[cb] = function (resultJson) {
+          delete window[cb];
+          try {
+            const result = JSON.parse(resultJson);
+            if (!result.success) {
+              showToast(result.message || 'Não foi possível criar o acesso administrativo.');
+              return;
+            }
+            passwordInput.value = '';
+            applyNativeBootstrap();
+            renderApp();
+            showToast(result.message);
+          } catch (error) {
+            console.error('Falha ao criar acesso administrativo.', error);
+            showToast('Não foi possível criar o acesso administrativo.');
+          }
+        };
+        window.AndroidApp.createAdminUser(username, password, cb);
+        return;
+      }
+      const adminUsers = Array.isArray(appState.adminUsers) ? appState.adminUsers : [];
+      if (adminUsers.some((user) => String(user.username).toUpperCase() === username)) {
+        showToast('Esse usuário já está cadastrado.');
+        return;
+      }
+      appState.adminUsers = [...adminUsers, { username, role: 'ADMIN' }];
+      renderApp();
+      showToast('Acesso administrativo criado.');
+    }
+
+    function setEmployeeActive(employeeId, active) {
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        const cb = 'onSetEmployeeActiveResult';
+        window[cb] = function (resultJson) {
+          delete window[cb];
+          try {
+            const result = JSON.parse(resultJson);
+            if (!result.success) {
+              showToast(result.message || 'Não foi possível atualizar o funcionário.');
+              return;
+            }
+            applyNativeBootstrap();
+            renderApp();
+            showToast(result.message);
+          } catch (error) {
+            console.error('Falha ao atualizar situação do funcionário.', error);
+            showToast('Não foi possível atualizar a situação do funcionário.');
+          }
+        };
+        window.AndroidApp.setEmployeeActive(employeeId, active, cb);
+        return;
+      }
+      const employee = appState.employees.find((item) => item.id === employeeId);
+      if (employee) {
+        employee.ativo = active;
+        employee.situacao = active ? 'ATIVO' : 'AFASTADO';
+        renderApp();
+      }
+    }
+
+    function startNoteEdit(noteId = '') {
+      const note = appState.notes.find((item) => item.noteId === noteId);
+      appState.noteForm = note ? {
+        id: note.noteId,
+        employeeId: note.employeeId,
+        number: note.titulo,
+        itemCount: note.itemCount || 0,
+        unitCount: note.unitCount || 0,
+        volumeM3: note.volumeM3 || 0,
+        areaM2: note.areaM2 || 0,
+        linearMeters: note.linearMeters || 0,
+        bagCount: note.bagCount || 0,
+        executionMinutes: note.executionMinutes || 0,
+        errorCount: note.errorCount || 0,
+        observation: note.observation || note.detalhe || ''
+      } : {
+        id: '',
+        employeeId: '',
+        number: '',
+        itemCount: 0,
+        unitCount: 0,
+        volumeM3: 0,
+        areaM2: 0,
+        linearMeters: 0,
+        bagCount: 0,
+        executionMinutes: 0,
+        errorCount: 0,
+        observation: ''
+      };
+      renderApp();
+    }
+
+    function cancelNoteEdit() {
+      appState.noteForm = null;
+      renderApp();
+    }
+
+    function saveNoteFromForm(event) {
+      event.preventDefault();
+      const form = appState.noteForm;
+      if (!form) return;
+      const values = [
+        Number(document.getElementById('noteItemCount').value),
+        Number(document.getElementById('noteUnitCount').value),
+        Number(document.getElementById('noteVolumeM3').value),
+        Number(document.getElementById('noteAreaM2').value),
+        Number(document.getElementById('noteLinearMeters').value),
+        Number(document.getElementById('noteBagCount').value),
+        Number(document.getElementById('noteExecutionMinutes').value),
+        Number(document.getElementById('noteErrorCount').value)
+      ];
+      if (values.some((value) => !Number.isFinite(value) || value < 0)) {
+        showToast('Informe valores numéricos válidos, iguais ou maiores que zero.');
+        return;
+      }
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        const cb = 'onSaveManualNoteResult';
+        window[cb] = function (resultJson) {
+          delete window[cb];
+          try {
+            const result = JSON.parse(resultJson);
+            if (!result.success) {
+              showToast(result.message || 'Não foi possível salvar a nota.');
+              return;
+            }
+            appState.noteForm = null;
+            appState.noteStatusFilter = 'queue';
+            applyNativeBootstrap();
+            renderApp();
+            showToast(result.message);
+          } catch (error) {
+            console.error('Falha ao salvar nota.', error);
+            showToast('Não foi possível salvar a nota.');
+          }
+        };
+        window.AndroidApp.saveManualNote(
+          form.id,
+          form.employeeId,
+          form.number,
+          values[0],
+          values[1],
+          values[2],
+          values[3],
+          values[4],
+          values[5],
+          values[6],
+          values[7],
+          document.getElementById('noteObservation').value,
+          cb
+        );
+        return;
+      }
+      showToast('O cadastro manual de notas está disponível no aplicativo.');
+    }
+
+    function toggleAutoApproveNotes(enabled) {
+      appState.autoApproveNotes = enabled;
+      if (IS_ANDROID_APP && window.AndroidApp && typeof window.AndroidApp.setAutoApproveNotes === 'function') {
+        const result = JSON.parse(window.AndroidApp.setAutoApproveNotes(enabled));
+        showToast(result.message || (enabled ? 'Aprovação automática ativada.' : 'Aprovação automática desativada.'));
+      } else {
+        showToast(enabled ? 'Aprovação automática ativada.' : 'Aprovação automática desativada.');
+      }
+      renderApp();
+    }
+
+    function approveNoteWithErrors(noteId) {
+      const input = document.getElementById(`auditErrors-${String(noteId)}`);
+      const errorCount = Number(input?.value || 0);
+      if (!Number.isInteger(errorCount) || errorCount < 0) {
+        showToast('Informe uma quantidade válida de erros.');
+        return;
+      }
+      if (!IS_ANDROID_APP || !window.AndroidApp) {
+        showToast('Esta ação requer o aplicativo Android.');
+        return;
+      }
+      const cb = 'onApproveNoteWithErrorsResult';
+      window[cb] = function (resultJson) {
+        delete window[cb];
+        try {
+          const result = JSON.parse(resultJson);
+          if (!result.success) {
+            showToast(result.message || 'Não foi possível aprovar a nota.');
+            return;
+          }
+          applyNativeBootstrap();
+          renderApp();
+          showToast(result.message);
+        } catch (error) {
+          console.error('Falha na aprovação da nota.', error);
+          showToast('Não foi possível concluir a aprovação.');
+        }
+      };
+      window.AndroidApp.setNotaAuditStatusWithErrors(noteId, 'Aprovado', errorCount, cb);
+    }
+
+    function setNoteStatus(noteId, status) {
+      if (!IS_ANDROID_APP || !window.AndroidApp) return;
+      const cb = 'onSetNotaAuditStatusResult';
+      window[cb] = function (resultJson) {
+        delete window[cb];
+        try {
+          const result = JSON.parse(resultJson);
+          if (!result.success) {
+            showToast(result.message || 'Não foi possível atualizar a auditoria.');
+            return;
+          }
+          applyNativeBootstrap();
+          renderApp();
+          showToast(result.message);
+        } catch (error) {
+          console.error('Falha na auditoria da nota.', error);
+          showToast('Não foi possível atualizar a auditoria da nota.');
+        }
+      };
+      window.AndroidApp.setNotaAuditStatus(noteId, status, cb);
+    }
+
+    function toggleNotePhoto(noteId) {
+      if (appState.reviewPhotoNoteId === noteId) {
+        appState.reviewPhotoNoteId = '';
+        appState.reviewPhotoRequestId = '';
+        appState.reviewPhotoDataUrl = '';
+        appState.reviewPhotoError = '';
+        renderApp();
+        return;
+      }
+      if (!IS_ANDROID_APP || !window.AndroidApp) {
+        showToast('A visualização do anexo está disponível no aplicativo.');
+        return;
+      }
+      const requestId = `note-photo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      appState.reviewPhotoNoteId = noteId;
+      appState.reviewPhotoRequestId = requestId;
+      appState.reviewPhotoDataUrl = '';
+      appState.reviewPhotoError = '';
+      renderApp();
+      try {
+        window.AndroidApp.loadNotePhoto(noteId, requestId);
+      } catch (error) {
+        console.error('Falha ao carregar o anexo da nota.', error);
+        appState.reviewPhotoRequestId = '';
+        appState.reviewPhotoError = 'Não foi possível carregar a imagem da nota.';
+        renderApp();
+      }
+    }
+
+    function beginCancelNote(noteId) {
+      appState.noteCancelId = noteId;
+      appState.noteCancelReason = '';
+      renderApp();
+    }
+
+    function cancelNoteFromForm(noteId) {
+      if (!appState.noteCancelReason.trim()) {
+        showToast('Informe o motivo do estorno.');
+        return;
+      }
+      if (!IS_ANDROID_APP || !window.AndroidApp) return;
+      const cb = 'onCancelNoteResult';
+      window[cb] = function (resultJson) {
+        delete window[cb];
+        try {
+          const result = JSON.parse(resultJson);
+          if (!result.success) {
+            showToast(result.message || 'Não foi possível estornar a nota.');
+            return;
+          }
+          appState.noteCancelId = '';
+          appState.noteCancelReason = '';
+          appState.noteStatusFilter = 'all';
+          applyNativeBootstrap();
+          renderApp();
+          showToast(result.message);
+        } catch (error) {
+          console.error('Falha ao estornar nota.', error);
+          showToast('Não foi possível estornar a nota.');
+        }
+      };
+      window.AndroidApp.cancelNote(noteId, appState.noteCancelReason, cb);
+    }
+
+    function addNote() {
+      const el = document.getElementById('newNoteField');
+      if (!el || !el.value.trim()) return;
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        const employeeId = document.getElementById('observationEmployeeId')?.value;
+        const employee = appState.employees.find((item) => item.id === employeeId);
+        if (!employee) {
+          showToast('Selecione o funcionário relacionado à observação.');
+          return;
+        }
+        const cb = 'onAddObservationResult';
+        window[cb] = function (resultJson) {
+          delete window[cb];
+          try {
+            const result = JSON.parse(resultJson);
+            if (!result.success) {
+              showToast(result.message || 'Não foi possível salvar a observação.');
+              return;
+            }
+            el.value = '';
+            applyNativeBootstrap();
+            renderApp();
+            showToast(result.message);
+          } catch (error) {
+            console.error('Falha ao salvar observação.', error);
+            showToast('Não foi possível salvar a observação.');
+          }
+        };
+        window.AndroidApp.addObservation(employee.id, el.value.trim(), cb);
+        return;
+      }
+      appState.notes.unshift({
+        id: 'note-' + Date.now(),
+        autor: 'Equipe Brasília',
+        titulo: el.value.trim(),
+        detalhe: 'Registro operacional.',
+        tempo: 'Agora'
+      });
+      renderApp();
+      showToast('Observação adicionada.');
+    }
+
+    // =========================================================================
+    // Relatórios administrativos
+    // =========================================================================
+
+    function getReportData() {
+      const monthCount = 6;
+      const start = new Date();
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      start.setMonth(start.getMonth() - monthCount + 1);
+      const employees = appState.employees;
+      const notes = appState.notes.filter((note) => {
+        const time = Number(note.createdAt);
+        return note.noteId &&
+          Number.isFinite(time) &&
+          time >= start.getTime();
+      });
+      return { employees, notes, start, monthCount };
+    }
+
+    function getMonthlyReportRows(notes, monthCount) {
+      const start = new Date();
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      start.setMonth(start.getMonth() - monthCount + 1);
+      const months = [];
+      for (let index = 0; index < monthCount; index += 1) {
+        const date = new Date(start);
+        date.setMonth(start.getMonth() + index);
+        months.push({
+          date,
+          label: date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+          fullLabel: date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }).replace('.', ''),
+          approvedPoints: 0,
+          approvedNotes: 0,
+          approvedVolume: 0,
+          pendingNotes: 0
+        });
+      }
+      notes.forEach((note) => {
+        const date = new Date(Number(note.createdAt));
+        const month = months.find((entry) =>
+          entry.date.getMonth() === date.getMonth() &&
+          entry.date.getFullYear() === date.getFullYear()
+        );
+        if (!month) return;
+        if (note.status === 'APROVADO') {
+          month.approvedPoints += Number(note.points) || 0;
+          month.approvedNotes += 1;
+          month.approvedVolume += Number(note.volumeM3) || 0;
+        } else if (note.status === 'PENDENTE' || note.status === 'REVISAR') {
+          month.pendingNotes += 1;
+        }
+      });
+      return months;
+    }
+
+    function renderMonthlyPerformanceChart(rows) {
+      const months = rows.map((row) => row.label);
+      const scaleSeries = (key) => {
+        const values = rows.map((row) => row[key]);
+        const max = Math.max(0, ...values);
+        return values.map((value) => max ? (value / max) * 12 : 0);
+      };
+      const seriesA = scaleSeries('approvedPoints');
+      const seriesB = scaleSeries('approvedNotes');
+      const seriesC = scaleSeries('approvedVolume');
+      const selectedIndex = Math.max(0, Math.min(appState.selectedChartPoint.index, rows.length - 1));
+      const selectedRow = rows[selectedIndex];
+      const formatted = (value, digits = 0) => Number(value || 0).toLocaleString('pt-BR', {
+        maximumFractionDigits: digits
+      });
+
+      return `
+        <section class="hairline-card rounded-2xl p-3.5 space-y-3">
+          <div>
+            <h2 class="text-xs font-bold text-campeao-ink">Comparativo mensal de desempenho</h2>
+            <p class="text-[10px] text-campeao-muted mt-0.5">Séries reais do período. Escala relativa: o maior valor de cada indicador equivale a 12.</p>
+          </div>
+          <div class="grid grid-cols-1 gap-1.5">
+            ${renderLegendToggle('A', 'Pontos aprovados', 'solid-blue')}
+            ${renderLegendToggle('B', 'Notas aprovadas', 'hollow-red')}
+            ${renderLegendToggle('C', 'Volume aprovado', 'solid-yellow')}
+          </div>
+          <div>
+            ${renderReferenceLineChartSvg(months, seriesA, seriesB, seriesC)}
+          </div>
+          <p class="text-[10px] text-center text-campeao-muted">
+            ${escapeHtml(selectedRow.fullLabel)} · ${formatted(selectedRow.approvedPoints)} pts · ${formatted(selectedRow.approvedNotes)} notas · ${formatted(selectedRow.approvedVolume, 2)} m³
+          </p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-[10px]" style="min-width:560px">
+              <thead class="text-campeao-muted">
+                <tr>
+                  <th scope="col" class="px-2 py-2 text-left font-semibold">Mês</th>
+                  <th scope="col" class="px-2 py-2 font-semibold" style="text-align:right">Pontos aprovados</th>
+                  <th scope="col" class="px-2 py-2 font-semibold" style="text-align:right">Notas aprovadas</th>
+                  <th scope="col" class="px-2 py-2 font-semibold" style="text-align:right">Volume (m³)</th>
+                  <th scope="col" class="px-2 py-2 font-semibold" style="text-align:right">Pendentes</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-campeao-line">
+                ${rows.map((row, index) => `
+                  <tr class="${index === selectedIndex ? 'bg-campeao-greenSoft/70' : 'bg-white'}">
+                    <th scope="row" class="px-2 py-2 text-left font-semibold text-campeao-ink">
+                      <button type="button" onclick="selectChartPoint('B', ${index})" class="text-campeao-ink">${escapeHtml(row.fullLabel)}</button>
+                    </th>
+                    <td class="px-2 py-2 tabular-nums" style="text-align:right">${formatted(row.approvedPoints)}</td>
+                    <td class="px-2 py-2 tabular-nums" style="text-align:right">${formatted(row.approvedNotes)}</td>
+                    <td class="px-2 py-2 tabular-nums" style="text-align:right">${formatted(row.approvedVolume, 2)}</td>
+                    <td class="px-2 py-2 tabular-nums" style="text-align:right">${formatted(row.pendingNotes)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderRelatoriosScreen() {
+      if (appState.userRole !== 'adm') {
+        return `
+          <div class="pt-10 pb-6 px-2 text-center space-y-4">
+            <div class="mx-auto w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-campeao-amber">
+              ${ICONS.lock}
+            </div>
+            <h2 class="text-base font-bold text-campeao-ink">Área exclusiva do administrador</h2>
+          </div>
+        `;
+      }
+      const { employees, notes, start, monthCount } = getReportData();
+      const pendingNotes = appState.notes.filter((note) =>
+        note.status === 'PENDENTE' || note.status === 'REVISAR'
+      );
+      const approved = notes.filter((note) => note.status === 'APROVADO');
+      const pendingCount = pendingNotes.length;
+      const points = approved.reduce((total, note) => total + (Number(note.points) || 0), 0);
+      const volume = approved.reduce((total, note) => total + (Number(note.volumeM3) || 0), 0);
+      const perEmployee = employees.map((employee) => {
+        const employeeNotes = approved.filter((note) => note.employeeId === String(employee.id));
+        return {
+          ...employee,
+          approvedPoints: employeeNotes.reduce((total, note) => total + (Number(note.points) || 0), 0),
+          approvedNotes: employeeNotes.length,
+          approvedVolume: employeeNotes.reduce((total, note) => total + (Number(note.volumeM3) || 0), 0)
+        };
+      }).sort((a, b) =>
+        (b.approvedPoints + (Number(b.pontosAjusteAdm) || 0)) -
+        (a.approvedPoints + (Number(a.pontosAjusteAdm) || 0))
+      );
+      const reportRows = getMonthlyReportRows(notes, monthCount);
+      const filteredEmployees = perEmployee
+        .filter((employee) => {
+          const query = appState.admReportSearch.trim().toLocaleLowerCase('pt-BR');
+          return !query || [
+            employee.nome,
+            employee.matricula,
+            employee.setor
+          ].some((value) => String(value || '').toLocaleLowerCase('pt-BR').includes(query));
+        })
+        .sort((a, b) => {
+          if (appState.admReportSort === 'name') {
+            return String(a.nome).localeCompare(String(b.nome), 'pt-BR');
+          }
+          if (appState.admReportSort === 'notes') return b.approvedNotes - a.approvedNotes;
+          if (appState.admReportSort === 'volume') return b.approvedVolume - a.approvedVolume;
+          return (b.approvedPoints + (Number(b.pontosAjusteAdm) || 0)) -
+            (a.approvedPoints + (Number(a.pontosAjusteAdm) || 0));
+        });
+      return `
+        <div class="space-y-5 pb-3">
+          <header class="flex items-start justify-between gap-3 pt-1">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-campeao-greenDark">Área administrativa</span>
+              <div class="flex items-center gap-2 mt-1">
+                <h1 class="text-xl font-bold tracking-tight text-campeao-ink">Visão geral</h1>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-campeao-greenSoft text-campeao-greenDark">ADM</span>
+              </div>
+              <p class="text-[11px] text-campeao-muted mt-1">Indicadores dos últimos 6 meses · desde ${start.toLocaleDateString('pt-BR')}</p>
+            </div>
+          </header>
+
+          <section aria-label="Auditoria automática e fila de notas" class="hairline-card rounded-2xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-bold text-campeao-ink">Revisão de notas</h2>
+                <p class="mt-0.5 text-[10px] text-campeao-muted">${pendingCount} aguardando aprovação</p>
+              </div>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <span class="text-[9px] font-semibold text-campeao-muted">Aprovação automática</span>
+                <input type="checkbox" ${appState.autoApproveNotes ? 'checked' : ''}
+                  onchange="toggleAutoApproveNotes(this.checked)"
+                  class="h-4 w-4 accent-campeao-greenDark"
+                  aria-label="Ativar aprovação automática de notas" />
+              </label>
+            </div>
+            ${pendingNotes.length ? pendingNotes.slice(0, 5).map((note) => `
+              <article class="rounded-xl border border-campeao-line bg-white p-3 space-y-2.5">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="truncate text-xs font-bold text-campeao-ink">${escapeHtml(note.titulo || 'Nota sem número')}</p>
+                    <p class="mt-0.5 text-[10px] text-campeao-muted">${escapeHtml(note.autor || 'Colaborador')} · ${Number(note.points || 0).toLocaleString('pt-BR')} pts previstos</p>
+                  </div>
+                  <span class="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[9px] font-bold text-amber-800">Pendente</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="rounded-lg bg-campeao-surface p-2">
+                    <p class="text-[9px] text-campeao-muted">Itens</p>
+                    <p class="mt-0.5 text-xs font-semibold text-campeao-ink">${Number(note.itemCount || 0)}</p>
+                  </div>
+                  <div class="rounded-lg bg-campeao-surface p-2">
+                    <p class="text-[9px] text-campeao-muted">Volume</p>
+                    <p class="mt-0.5 text-xs font-semibold text-campeao-ink">${Number(note.volumeM3 || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m³</p>
+                  </div>
+                  <label class="rounded-lg border border-amber-200 bg-amber-50 p-2 text-[9px] font-semibold text-amber-900">
+                    Erros
+                    <input id="auditErrors-${escapeHtml(note.noteId || note.id)}" type="number" min="0" max="999" step="1"
+                      value="${Number(note.errorCount || 0)}"
+                      class="mt-1 w-full rounded-md border border-amber-200 bg-white px-2 py-1 text-xs text-campeao-ink" />
+                  </label>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" onclick="setNoteStatus('${escapeHtml(note.noteId || note.id)}', 'Revisar')"
+                    class="btn-ghost rounded-xl py-2.5 text-[10px] font-semibold">Solicitar correção</button>
+                  <button type="button" onclick="approveNoteWithErrors('${escapeHtml(note.noteId || note.id)}')"
+                    class="btn-primary rounded-xl py-2.5 text-[10px] font-semibold">Aprovar e liberar</button>
+                </div>
+              </article>
+            `).join('') : `
+              <div class="rounded-xl border border-campeao-green/20 bg-campeao-greenSoft/50 p-4 text-center">
+                <p class="text-xs font-semibold text-campeao-greenDark">Nenhuma nota aguardando aprovação</p>
+              </div>
+            `}
+          </section>
+
+          ${renderAdmTeamPerformanceSection(filteredEmployees, perEmployee, notes, monthCount)}
+
+          <section aria-label="Resumo do período" class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <h2 class="text-xs font-bold text-campeao-ink">Resumo do período</h2>
+              <span class="text-[10px] text-campeao-muted">${approved.length + notes.filter((note) => note.status === 'PENDENTE' || note.status === 'REVISAR').length} notas no período</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="hairline-card rounded-2xl p-3.5">
+                <p class="text-[10px] font-medium text-campeao-muted">Pontos aprovados</p>
+                <p class="text-lg font-bold text-campeao-greenDark mt-1">${points.toLocaleString('pt-BR')} <span class="text-[10px] font-semibold">pts</span></p>
+              </div>
+              <div class="hairline-card rounded-2xl p-3.5">
+                <p class="text-[10px] font-medium text-campeao-muted">Volume aprovado</p>
+                <p class="text-lg font-bold text-campeao-amber mt-1">${volume.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} <span class="text-[10px] font-semibold">m³</span></p>
+              </div>
+              <div class="hairline-card rounded-2xl p-3.5">
+                <p class="text-[10px] font-medium text-campeao-muted">Notas aprovadas</p>
+                <p class="text-lg font-bold text-campeao-ink mt-1">${approved.length}</p>
+              </div>
+              <button type="button" onclick="openNoteAuditQueue()"
+                class="hairline-card rounded-2xl p-3.5 text-left ${pendingCount ? 'border-amber-200 bg-amber-50/60' : ''}">
+                <p class="text-[10px] font-medium text-campeao-muted">Notas para revisar</p>
+                <p class="text-lg font-bold ${pendingCount ? 'text-amber-700' : 'text-campeao-greenDark'} mt-1">${pendingCount}</p>
+                <span class="text-[9px] text-campeao-muted">${pendingCount ? 'Abrir fila de revisão' : 'Fila sem pendências'}</span>
+              </button>
+            </div>
+          </section>
+
+          ${renderMonthlyPerformanceChart(reportRows)}
+
+          <section aria-label="Exportar relatório" class="hairline-card rounded-2xl p-3.5 space-y-3">
+            <div>
+              <h2 class="text-xs font-bold text-campeao-ink">Exportar relatório</h2>
+              <p class="text-[10px] text-campeao-muted mt-0.5">Gere uma cópia dos dados para acompanhamento.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="exportReport('CSV')" class="btn-ghost py-2.5 rounded-xl text-xs font-semibold">Baixar CSV</button>
+              <button type="button" onclick="exportReport('PDF')" class="btn-primary py-2.5 rounded-xl text-xs font-semibold">Imprimir relatório</button>
+            </div>
+            ${appState.exportedAt ? `<p role="status" class="text-center text-[10px] font-medium text-campeao-greenDark">Relatório ${appState.exportedFormat} gerado às ${appState.exportedAt}</p>` : ''}
+          </section>
+        </div>
+      `;
+    }
+
+    function renderAdmTeamPerformanceSection(filteredEmployees, perEmployee, notes, monthCount) {
+      return `
+        <section aria-label="Desempenho da equipe" class="hairline-card rounded-2xl p-3.5 space-y-3">
+          <header class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-campeao-greenDark">Gestão da equipe</span>
+              <h2 class="text-sm font-bold text-campeao-ink">Desempenho da equipe</h2>
+              <p class="text-[10px] text-campeao-muted mt-0.5">Pontos, volume e ajustes nos últimos 6 meses.</p>
+            </div>
+            <span class="shrink-0 rounded-full bg-campeao-greenSoft border border-campeao-green/20 px-2.5 py-1 text-[10px] font-semibold text-campeao-greenDark">
+              ${filteredEmployees.length} ${filteredEmployees.length === 1 ? 'funcionário' : 'funcionários'}
+            </span>
+          </header>
+          <div class="grid grid-cols-2 gap-2 rounded-xl bg-campeao-surface p-2.5">
+            <label class="block min-w-0 text-[10px] font-semibold text-campeao-muted">
+              Buscar
+              <input
+                id="admReportSearch"
+                type="search"
+                value="${escapeHtml(appState.admReportSearch)}"
+                oninput="updateAdmReportSearch(this.value)"
+                placeholder="Nome ou matrícula"
+                aria-label="Buscar funcionário no relatório"
+                class="mt-1 w-full min-w-0 px-3 py-2.5 rounded-xl border border-campeao-line bg-white text-[11px]"
+              />
+            </label>
+            <label class="block min-w-0 text-[10px] font-semibold text-campeao-muted">
+              Ordenar
+              <select
+                onchange="appState.admReportSort = this.value; renderApp();"
+                aria-label="Ordenar funcionários"
+                class="mt-1 w-full min-w-0 px-2 py-2.5 rounded-xl border border-campeao-line bg-white text-[11px] text-campeao-ink"
+              >
+                <option value="points" ${appState.admReportSort === 'points' ? 'selected' : ''}>Mais pontos</option>
+                <option value="notes" ${appState.admReportSort === 'notes' ? 'selected' : ''}>Mais notas</option>
+                <option value="volume" ${appState.admReportSort === 'volume' ? 'selected' : ''}>Maior volume</option>
+                <option value="name" ${appState.admReportSort === 'name' ? 'selected' : ''}>Nome</option>
+              </select>
+            </label>
+          </div>
+          <div class="rounded-2xl border border-campeao-line overflow-hidden divide-y divide-campeao-line">
+            ${filteredEmployees.length ? filteredEmployees.map((employee, index) => {
+              const adjustment = Number(employee.pontosAjusteAdm) || 0;
+              const totalPoints = employee.approvedPoints + adjustment;
+              const employeeId = escapeHtml(employee.id);
+              const employeeName = escapeHtml(employee.nome);
+              const expanded = String(appState.admEmployeeExpandedId) === String(employee.id);
+              const detailsId = `admEmployeeDetails-${employeeId}`;
+              const employeeMonthlyRows = getMonthlyReportRows(
+                notes.filter((note) => String(note.employeeId) === String(employee.id)),
+                monthCount
+              );
+              return `
+                <article class="bg-white">
+                  <button type="button" aria-expanded="${expanded}" ${expanded ? `aria-controls="${detailsId}"` : ''}
+                    onclick="toggleAdmEmployeeDetails('${employeeId}')"
+                    class="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-campeao-surface/60">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-campeao-greenSoft text-[10px] font-bold text-campeao-greenDark">
+                      ${index + 1}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-xs font-semibold text-campeao-ink">${employeeName}</span>
+                      <span class="mt-0.5 block truncate text-[10px] text-campeao-muted">
+                        ${escapeHtml(employee.matricula || 'Sem matrícula')} · ${escapeHtml(employee.setor || 'Sem setor')}
+                      </span>
+                    </span>
+                    <span class="shrink-0 text-right">
+                      <span class="block text-xs font-bold text-campeao-greenDark">${totalPoints.toLocaleString('pt-BR')}</span>
+                      <span class="block text-[9px] text-campeao-muted">pontos</span>
+                    </span>
+                    <span class="shrink-0 text-campeao-muted" aria-hidden="true">${expanded ? '−' : '+'}</span>
+                  </button>
+                  ${expanded ? `
+                    <div id="${detailsId}" class="space-y-3 border-t border-campeao-line bg-campeao-surface/40 px-3 py-3">
+                      <div class="grid grid-cols-2 gap-2">
+                        <div class="rounded-xl bg-white p-2.5">
+                          <p class="text-[9px] text-campeao-muted">Notas aprovadas</p>
+                          <p class="mt-0.5 text-xs font-semibold text-campeao-ink">${employee.approvedNotes}</p>
+                        </div>
+                        <div class="rounded-xl bg-white p-2.5">
+                          <p class="text-[9px] text-campeao-muted">Volume aprovado</p>
+                          <p class="mt-0.5 text-xs font-semibold text-campeao-ink">${employee.approvedVolume.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m³</p>
+                        </div>
+                        <div class="rounded-xl bg-white p-2.5">
+                          <p class="text-[9px] text-campeao-muted">Ajustes ADM</p>
+                          <p class="mt-0.5 text-xs font-semibold text-campeao-ink">${adjustment > 0 ? '+' : ''}${adjustment.toLocaleString('pt-BR')} pts</p>
+                        </div>
+                        <div class="rounded-xl bg-campeao-greenSoft/60 p-2.5">
+                          <p class="text-[9px] text-campeao-greenDark">Pontos das notas</p>
+                          <p class="mt-0.5 text-xs font-semibold text-campeao-greenDark">${employee.approvedPoints.toLocaleString('pt-BR')} pts</p>
+                        </div>
+                      </div>
+                      <section aria-label="Desempenho mensal de ${employeeName}" class="rounded-xl border border-campeao-line bg-white p-2.5">
+                        <h3 class="text-[10px] font-bold text-campeao-ink">Evolução mensal</h3>
+                        <div class="mt-2 overflow-x-auto">
+                          <table class="w-full text-[9px]" style="min-width:360px">
+                            <thead>
+                              <tr class="text-left text-campeao-muted">
+                                <th class="pb-1.5 font-semibold">Mês</th>
+                                <th class="pb-1.5 text-right font-semibold">Pontos</th>
+                                <th class="pb-1.5 text-right font-semibold">Notas</th>
+                                <th class="pb-1.5 text-right font-semibold">Volume</th>
+                              </tr>
+                            </thead>
+                            <tbody class="divide-y divide-campeao-line">
+                              ${employeeMonthlyRows.map((row) => `
+                                <tr>
+                                  <th scope="row" class="py-1.5 text-left font-medium text-campeao-ink">${escapeHtml(row.fullLabel)}</th>
+                                  <td class="py-1.5 text-right text-campeao-ink">${row.approvedPoints.toLocaleString('pt-BR')}</td>
+                                  <td class="py-1.5 text-right text-campeao-ink">${row.approvedNotes}</td>
+                                  <td class="py-1.5 text-right text-campeao-ink">${row.approvedVolume.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m³</td>
+                                </tr>
+                              `).join('')}
+                            </tbody>
+                          </table>
+                        </div>
+                      </section>
+                      <div class="grid grid-cols-2 gap-2">
+                        <button type="button"
+                          onclick="appState.admEmployeeExpandedId='${employeeId}'; appState.pointAdjustmentEmployeeId='${employeeId}'; renderApp()"
+                          aria-label="Ajustar pontos de ${employeeName}"
+                          class="btn-ghost py-2 rounded-xl text-[10px] font-semibold">
+                          Ajuste manual
+                        </button>
+                        <button type="button"
+                          onclick="adjustAdmBonus('${employeeId}', 50, 'Bônus rápido de produtividade')"
+                          aria-label="Conceder 50 pontos para ${employeeName}"
+                          class="btn-primary py-2 rounded-xl text-[10px] font-semibold">
+                          Conceder +50 pts
+                        </button>
+                      </div>
+                      ${String(appState.pointAdjustmentEmployeeId) === String(employee.id) ? `
+                        <form class="rounded-xl border border-campeao-line bg-white p-3 space-y-2.5"
+                          onsubmit="submitAdmPointAdjustment(event, '${employeeId}')">
+                          <div>
+                            <h4 class="text-xs font-bold text-campeao-ink">Ajuste manual de pontos</h4>
+                            <p class="text-[10px] text-campeao-muted mt-0.5">Positivo adiciona; negativo remove pontos.</p>
+                          </div>
+                          <label class="block text-[10px] font-semibold text-campeao-muted">QUANTIDADE DE PONTOS
+                            <input id="admPointAmount" type="number" step="0.01" min="-10000" max="10000" required
+                              class="mt-1 w-full px-3 py-2 rounded-lg border border-campeao-line bg-white text-xs text-campeao-ink" />
+                          </label>
+                          <label class="block text-[10px] font-semibold text-campeao-muted">JUSTIFICATIVA
+                            <input id="admPointReason" type="text" maxlength="250" required
+                              placeholder="Informe o motivo do ajuste"
+                              class="mt-1 w-full px-3 py-2 rounded-lg border border-campeao-line bg-white text-xs text-campeao-ink" />
+                          </label>
+                          <div class="flex gap-2">
+                            <button type="submit" class="btn-primary flex-1 py-2 rounded-lg text-[10px] font-semibold">Salvar ajuste</button>
+                            <button type="button" onclick="appState.pointAdjustmentEmployeeId=''; renderApp()"
+                              class="btn-ghost px-3 py-2 rounded-lg text-[10px] font-semibold">Cancelar</button>
+                          </div>
+                        </form>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+                </article>
+              `;
+            }).join('') : `
+              <div class="p-5 text-center">
+                <p class="text-xs font-semibold text-campeao-ink">Nenhum funcionário encontrado</p>
+                <p class="text-[10px] text-campeao-muted mt-1">
+                  ${perEmployee.length ? 'Tente outra busca.' : 'Não há funcionários cadastrados.'}
+                </p>
+              </div>
+            `}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderConfiguracoesScreen() {
+      if (appState.userRole !== 'adm') {
+        return `
+          <div class="pt-10 pb-6 px-2 text-center space-y-4">
+            <div class="mx-auto w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-campeao-amber">
+              ${ICONS.lock}
+            </div>
+            <h2 class="text-base font-bold text-campeao-ink">Configurações exclusivas do administrador</h2>
+          </div>
+        `;
+      }
+      const adminUsers = (Array.isArray(appState.adminUsers) ? appState.adminUsers : [])
+        .filter((user) => user.role === 'ADMIN')
+        .sort((a, b) => String(a.username).localeCompare(String(b.username), 'pt-BR'));
+      const employeeForm = appState.employeeForm;
+      const employees = [...(Array.isArray(appState.employees) ? appState.employees : [])]
+        .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+      return `
+        <div class="space-y-4 pb-3">
+          <header class="hairline-card rounded-2xl p-4">
+            <span class="text-[9px] font-bold uppercase tracking-[0.14em] text-campeao-greenDark">Área administrativa</span>
+            <h1 class="mt-1 text-lg font-bold tracking-tight text-campeao-ink">Configurações administrativas</h1>
+            <p class="mt-1 text-[11px] leading-relaxed text-campeao-muted">Gerencie funcionários, contas administrativas e acessos autorizados.</p>
+          </header>
+
+          <section aria-label="Cadastro de funcionários" class="hairline-card rounded-2xl p-4 space-y-3">
+            <header class="flex items-center justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-bold text-campeao-ink">Funcionários</h2>
+                <p class="mt-0.5 text-[10px] text-campeao-muted">Cadastro, edição e situação dos colaboradores.</p>
+              </div>
+              <span class="shrink-0 rounded-full bg-campeao-greenSoft px-2.5 py-1 text-[10px] font-semibold text-campeao-greenDark">
+                ${employees.length} ${employees.length === 1 ? 'pessoa' : 'pessoas'}
+              </span>
+            </header>
+
+            ${employeeForm ? `
+              <form class="rounded-xl border border-campeao-line bg-campeao-surface/50 p-3 space-y-3" onsubmit="saveEmployeeFromForm(event)">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-campeao-ink">${employeeForm.id ? 'Editar funcionário' : 'Novo funcionário'}</h3>
+                  <button type="button" onclick="cancelEmployeeEdit()" class="text-[10px] font-semibold text-campeao-muted">Cancelar</button>
+                </div>
+                <label class="block text-[10px] font-semibold text-campeao-muted">MATRÍCULA
+                  <input id="employeeCode" required maxlength="32" value="${escapeHtml(employeeForm.code)}"
+                    ${employeeForm.id ? 'readonly' : ''}
+                    oninput="appState.employeeForm.code=this.value"
+                    class="mt-1 w-full px-3 py-2.5 rounded-xl border border-campeao-line bg-white text-xs text-campeao-ink" />
+                </label>
+                <label class="block text-[10px] font-semibold text-campeao-muted">NOME COMPLETO
+                  <input id="employeeName" required maxlength="100" value="${escapeHtml(employeeForm.name)}"
+                    oninput="appState.employeeForm.name=this.value"
+                    class="mt-1 w-full px-3 py-2.5 rounded-xl border border-campeao-line bg-white text-xs text-campeao-ink" />
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="block text-[10px] font-semibold text-campeao-muted">CARGO
+                    <input id="employeeJob" required maxlength="60" value="${escapeHtml(employeeForm.job)}"
+                      oninput="appState.employeeForm.job=this.value"
+                      class="mt-1 w-full px-3 py-2.5 rounded-xl border border-campeao-line bg-white text-xs text-campeao-ink" />
+                  </label>
+                  <label class="block text-[10px] font-semibold text-campeao-muted">SETOR
+                    <input id="employeeSector" required maxlength="60" value="${escapeHtml(employeeForm.sector)}"
+                      oninput="appState.employeeForm.sector=this.value"
+                      class="mt-1 w-full px-3 py-2.5 rounded-xl border border-campeao-line bg-white text-xs text-campeao-ink" />
+                  </label>
+                </div>
+                <label class="block text-[10px] font-semibold text-campeao-muted">SITUAÇÃO
+                  <select id="employeeSituation" onchange="appState.employeeForm.situation=this.value"
+                    class="mt-1 w-full px-3 py-2.5 rounded-xl border border-campeao-line bg-white text-xs text-campeao-ink">
+                    ${['ATIVO', 'FERIAS', 'FOLGA', 'AFASTADO'].map((status) => `
+                      <option value="${status}" ${employeeForm.situation === status ? 'selected' : ''}>
+                        ${{ ATIVO: 'Ativo', FERIAS: 'Férias', FOLGA: 'Folga', AFASTADO: 'Afastado' }[status]}
+                      </option>
+                    `).join('')}
+                  </select>
+                </label>
+                <label class="block text-[10px] font-semibold text-campeao-muted">
+                  ${employeeForm.id ? 'NOVA SENHA (OPCIONAL)' : 'SENHA INICIAL'}
+                  <input id="employeePassword" type="password" minlength="6" maxlength="15" ${employeeForm.id ? '' : 'required'}
+                    autocomplete="new-password" placeholder="De 6 a 15 caracteres"
+                    oninput="appState.employeeForm.password=this.value.slice(0, 15); this.value=appState.employeeForm.password"
+                    class="mt-1 w-full px-3 py-2.5 rounded-xl border border-campeao-line bg-white text-xs text-campeao-ink" />
+                </label>
+                <button type="submit" class="btn-primary w-full py-2.5 rounded-xl text-xs font-semibold">Salvar cadastro</button>
+              </form>
+            ` : `
+              <button type="button" onclick="startEmployeeEdit()" class="btn-primary w-full rounded-xl py-2.5 text-xs font-semibold">
+                + Cadastrar funcionário
+              </button>
+            `}
+
+            <div class="space-y-2">
+              ${employees.length ? employees.map((emp) => `
+                <article class="rounded-xl border border-campeao-line bg-white p-3">
+                  <div class="flex items-center gap-3">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-campeao-greenSoft text-[10px] font-bold text-campeao-greenDark">
+                      ${getInitials(emp.nome)}
+                    </span>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-xs font-semibold text-campeao-ink">${escapeHtml(emp.nome)}</p>
+                      <p class="mt-0.5 truncate text-[10px] text-campeao-muted">${escapeHtml(emp.matricula || 'Sem matrícula')} · ${escapeHtml(emp.cargo)}</p>
+                    </div>
+                    <span class="shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${
+                      emp.ativo === false ? 'bg-red-50 text-red-700' : 'bg-campeao-greenSoft text-campeao-greenDark'
+                    }">${emp.ativo === false ? 'Inativo' : 'Ativo'}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 border-t border-campeao-line pt-3 mt-3">
+                    <button type="button" onclick="startEmployeeEdit('${emp.id}')"
+                      class="btn-ghost rounded-lg py-2 text-[10px] font-semibold">Editar cadastro</button>
+                    <button type="button" onclick="setEmployeeActive('${emp.id}', ${emp.ativo === false})"
+                      class="rounded-lg border py-2 text-[10px] font-semibold ${
+                        emp.ativo === false ? 'border-campeao-green/20 bg-campeao-greenSoft text-campeao-greenDark' : 'border-red-100 bg-red-50 text-red-700'
+                      }">${emp.ativo === false ? 'Reativar' : 'Desativar'}</button>
+                  </div>
+                </article>
+              `).join('') : `
+                <p class="rounded-xl border border-campeao-line bg-white p-4 text-center text-xs text-campeao-muted">Nenhum funcionário cadastrado.</p>
+              `}
+            </div>
+          </section>
+
+          <section aria-label="Contas administrativas" class="hairline-card rounded-2xl p-4 space-y-4">
+            <header class="flex items-center justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-bold text-campeao-ink">Administradores</h2>
+                <p class="mt-0.5 text-[10px] text-campeao-muted">Cada pessoa usa seu próprio acesso.</p>
+              </div>
+              <span class="shrink-0 rounded-full bg-campeao-greenSoft px-2.5 py-1 text-[10px] font-semibold text-campeao-greenDark">
+                ${adminUsers.length} ${adminUsers.length === 1 ? 'conta' : 'contas'}
+              </span>
+            </header>
+            <div class="overflow-hidden rounded-xl border border-campeao-line divide-y divide-campeao-line">
+              ${adminUsers.length ? adminUsers.map((user) => `
+                <div class="flex items-center gap-3 bg-white px-3.5 py-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-campeao-greenSoft text-[10px] font-bold text-campeao-greenDark">ADM</span>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-xs font-semibold text-campeao-ink">${escapeHtml(user.username)}</p>
+                    <p class="mt-0.5 text-[10px] text-campeao-muted">Acesso administrativo</p>
+                  </div>
+                </div>
+              `).join('') : `
+                <p class="bg-white p-4 text-center text-xs text-campeao-muted">Nenhuma conta administrativa cadastrada.</p>
+              `}
+            </div>
+            <div class="border-t border-campeao-line pt-4">
+              <div class="mb-3">
+                <h3 class="text-xs font-bold text-campeao-ink">Adicionar administrador</h3>
+                <p class="mt-0.5 text-[10px] text-campeao-muted">O novo acesso poderá aprovar notas e fazer ajustes no ranking.</p>
+              </div>
+              <form class="space-y-3" onsubmit="saveAdminUserFromForm(event)">
+                <label class="block text-[10px] font-semibold text-campeao-muted">USUÁRIO
+                  <input id="adminUsername" type="text" required maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9._\\-]{2,31}"
+                    autocomplete="username" placeholder="Ex.: ADM-002"
+                    oninput="this.value=this.value.toUpperCase()"
+                    class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-xs text-campeao-ink" />
+                </label>
+                <label class="block text-[10px] font-semibold text-campeao-muted">SENHA INICIAL · 6 A 8 CARACTERES
+                  <input id="adminPassword" type="password" required minlength="6" maxlength="15"
+                    autocomplete="new-password" placeholder="Defina uma senha inicial"
+                    class="mt-1 w-full rounded-xl border border-campeao-line bg-white px-3 py-2.5 text-xs text-campeao-ink" />
+                </label>
+                <button type="submit" class="btn-primary w-full rounded-xl py-2.5 text-xs font-semibold">Criar conta ADM</button>
+              </form>
+            </div>
+          </section>
+          <p class="px-1 text-[10px] leading-relaxed text-campeao-muted">Cadastros, situação dos funcionários e revisão de notas ficam na tela Equipe.</p>
+        </div>
+      `;
+    }
+
+    function renderLegendToggle(seriesKey, label, styleType) {
+      const visible = appState.visibleSeries[seriesKey];
+      let iconSvg = '';
+      if (styleType === 'solid-blue') {
+        iconSvg = `
+          <svg class="w-6 h-3 shrink-0" viewBox="0 0 28 12">
+            <line x1="5" y1="6" x2="23" y2="6" stroke="#60A5FA" stroke-width="2"/>
+            <circle cx="5" cy="6" r="4.5" fill="#60A5FA"/>
+            <circle cx="23" cy="6" r="4.5" fill="#60A5FA"/>
+          </svg>
+        `;
+      } else if (styleType === 'hollow-red') {
+        iconSvg = `
+          <svg class="w-6 h-3 shrink-0" viewBox="0 0 28 12">
+            <line x1="5" y1="6" x2="23" y2="6" stroke="#DC2626" stroke-width="2"/>
+            <circle cx="5" cy="6" r="4" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+            <circle cx="23" cy="6" r="4" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+          </svg>
+        `;
+      } else {
+        iconSvg = `
+          <svg class="w-6 h-3 shrink-0" viewBox="0 0 28 12">
+            <line x1="5" y1="6" x2="23" y2="6" stroke="#FACC15" stroke-width="2"/>
+            <circle cx="5" cy="6" r="4.5" fill="#FACC15"/>
+            <circle cx="23" cy="6" r="4.5" fill="#FACC15"/>
+          </svg>
+        `;
+      }
+
+      return `
+        <button
+          type="button"
+          onclick="toggleReportSeries('${seriesKey}')"
+          class="flex items-center justify-center gap-1.5 px-2 py-1 rounded-xl border text-[10px] font-semibold transition cursor-pointer ${
+            visible
+              ? 'bg-campeao-surface/80 border-campeao-line text-campeao-ink'
+              : 'bg-white border-dashed border-campeao-line text-campeao-subtle opacity-55'
+          }"
+        >
+          ${iconSvg}
+          <span>${label}</span>
+        </button>
+      `;
+    }
+
+    function renderReferenceLineChartSvg(months, sA, sB, sC) {
+      const W = 316;
+      const H = 198;
+      const padL = 26;
+      const padR = 22;
+      const padT = 16;
+      const padB = 26;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const maxY = 12;
+
+      const xFor = (i) => {
+        if (months.length === 1) return padL + plotW / 2;
+        return padL + 14 + (i * (plotW - 24)) / (months.length - 1);
+      };
+      const yFor = (v) => padT + plotH - (v / maxY) * plotH;
+
+      const yTicks = [0, 2, 4, 6, 8, 10, 12];
+
+      const peakBIdx = sB.indexOf(Math.max(...sB));
+      const peakAIdx = sA.indexOf(Math.max(...sA));
+      const peakCIdx = sC.indexOf(Math.max(...sC));
+
+      const polyPoints = (arr) =>
+        arr.map((v, i) => `${xFor(i).toFixed(1)},${yFor(v).toFixed(1)}`).join(' ');
+
+      return `
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de linhas com comparação mensal de pontos, notas e volume aprovados" class="w-full h-auto select-none">
+          <defs>
+            <marker id="axisArrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#1F2937" />
+            </marker>
+          </defs>
+
+          ${yTicks.map((tick) => {
+            const y = yFor(tick).toFixed(1);
+            return `
+              ${tick > 0 ? `<line x1="${padL}" y1="${y}" x2="${W - 10}" y2="${y}" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="2,2.5" />` : ''}
+              <text x="${padL - 5}" y="${Number(y) + 3}" text-anchor="end" font-size="8.5" fill="#4B5563" font-weight="500">${tick}</text>
+            `;
+          }).join('')}
+
+          ${months.map((m, i) => {
+            const x = xFor(i).toFixed(1);
+            return `
+              <line x1="${x}" y1="${padT - 4}" x2="${x}" y2="${padT + plotH}" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="2,2.5" />
+              <text x="${x}" y="${H - 8}" text-anchor="middle" font-size="8.5" fill="#374151" font-weight="500">${m}</text>
+            `;
+          }).join('')}
+
+          <line x1="${padL}" y1="${padT + plotH}" x2="${padL}" y2="${padT - 8}" stroke="#1F2937" stroke-width="1.4" marker-end="url(#axisArrow)" />
+          <line x1="${padL}" y1="${padT + plotH}" x2="${W - 8}" y2="${padT + plotH}" stroke="#1F2937" stroke-width="1.4" marker-end="url(#axisArrow)" />
+          <text x="${W - 6}" y="${H - 8}" text-anchor="end" font-size="8" fill="#4B5563" font-weight="600">Mês</text>
+
+          ${appState.visibleSeries.B ? `
+            <line x1="${padL}" y1="${yFor(sB[peakBIdx]).toFixed(1)}" x2="${xFor(peakBIdx).toFixed(1)}" y2="${yFor(sB[peakBIdx]).toFixed(1)}" stroke="#DC2626" stroke-width="1.2" stroke-dasharray="2,2.5" />
+          ` : ''}
+          ${appState.visibleSeries.A ? `
+            <line x1="${padL}" y1="${yFor(sA[peakAIdx]).toFixed(1)}" x2="${xFor(peakAIdx).toFixed(1)}" y2="${yFor(sA[peakAIdx]).toFixed(1)}" stroke="#60A5FA" stroke-width="1.2" stroke-dasharray="2,2.5" />
+          ` : ''}
+          ${appState.visibleSeries.C ? `
+            <line x1="${padL}" y1="${yFor(sC[peakCIdx]).toFixed(1)}" x2="${xFor(peakCIdx).toFixed(1)}" y2="${yFor(sC[peakCIdx]).toFixed(1)}" stroke="#EAB308" stroke-width="1.2" stroke-dasharray="2,2.5" />
+          ` : ''}
+
+          ${appState.visibleSeries.C ? `
+            <polyline fill="none" stroke="#FACC15" stroke-width="2" points="${polyPoints(sC)}" />
+            ${sC.map((v, i) => {
+              const isSel = appState.selectedChartPoint.series === 'C' && appState.selectedChartPoint.index === i;
+              return `
+                <circle
+                  cx="${xFor(i).toFixed(1)}"
+                  cy="${yFor(v).toFixed(1)}"
+                  r="${isSel ? 6 : 4.8}"
+                  fill="#FACC15"
+                  stroke="${isSel ? '#854D0E' : 'none'}"
+                  stroke-width="${isSel ? 1.5 : 0}"
+                  class="cursor-pointer"
+                  onclick="selectChartPoint('C', ${i})"
+                />
+              `;
+            }).join('')}
+          ` : ''}
+
+          ${appState.visibleSeries.A ? `
+            <polyline fill="none" stroke="#60A5FA" stroke-width="2" points="${polyPoints(sA)}" />
+            ${sA.map((v, i) => {
+              const isSel = appState.selectedChartPoint.series === 'A' && appState.selectedChartPoint.index === i;
+              return `
+                <circle
+                  cx="${xFor(i).toFixed(1)}"
+                  cy="${yFor(v).toFixed(1)}"
+                  r="${isSel ? 6 : 4.8}"
+                  fill="#60A5FA"
+                  stroke="${isSel ? '#1E40AF' : 'none'}"
+                  stroke-width="${isSel ? 1.5 : 0}"
+                  class="cursor-pointer"
+                  onclick="selectChartPoint('A', ${i})"
+                />
+              `;
+            }).join('')}
+          ` : ''}
+
+          ${appState.visibleSeries.B ? `
+            <polyline fill="none" stroke="#DC2626" stroke-width="2" points="${polyPoints(sB)}" />
+            ${sB.map((v, i) => {
+              const isSel = appState.selectedChartPoint.series === 'B' && appState.selectedChartPoint.index === i;
+              return `
+                <circle
+                  cx="${xFor(i).toFixed(1)}"
+                  cy="${yFor(v).toFixed(1)}"
+                  r="${isSel ? 5.6 : 4.5}"
+                  fill="#FFFFFF"
+                  stroke="#DC2626"
+                  stroke-width="${isSel ? 2.6 : 2}"
+                  class="cursor-pointer"
+                  onclick="selectChartPoint('B', ${i})"
+                />
+              `;
+            }).join('')}
+          ` : ''}
+        </svg>
+      `;
+    }
+
+    function toggleAdmEmployeeDetails(employeeId) {
+      appState.admEmployeeExpandedId =
+        String(appState.admEmployeeExpandedId) === String(employeeId) ? '' : String(employeeId);
+      appState.pointAdjustmentEmployeeId = '';
+      renderApp();
+    }
+
+    function openNoteAuditQueue() {
+      appState.equipeTab = 'notas';
+      appState.noteStatusFilter = 'queue';
+      selectScreen('equipe');
+      requestAnimationFrame(() => {
+        document.getElementById('teamNoteAuditQueue')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      });
+    }
+
+    function updateAdmReportSearch(value) {
+      const input = document.getElementById('admReportSearch');
+      const cursor = input?.selectionStart ?? value.length;
+      appState.admReportSearch = value;
+      renderApp();
+      const refreshedInput = document.getElementById('admReportSearch');
+      refreshedInput?.focus();
+      refreshedInput?.setSelectionRange(cursor, cursor);
+    }
+
+    function toggleReportSeries(key) {
+      const next = { ...appState.visibleSeries, [key]: !appState.visibleSeries[key] };
+      if (!next.A && !next.B && !next.C) return;
+      appState.visibleSeries = next;
+      renderApp();
+    }
+
+    function selectChartPoint(series, index) {
+      appState.selectedChartPoint = { series, index };
+      renderApp();
+    }
+
+    function exportReport(format = 'PDF') {
+      if (format === 'CSV') {
+        const { employees, notes, start } = getReportData();
+        const escapeCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+        const approved = notes.filter((note) => note.status === 'APROVADO');
+        const pending = notes.filter((note) => note.status === 'PENDENTE' || note.status === 'REVISAR');
+        const approvedPoints = approved.reduce((total, note) => total + (Number(note.points) || 0), 0);
+        const approvedVolume = approved.reduce((total, note) => total + (Number(note.volumeM3) || 0), 0);
+        const employeeSummary = employees.map((employee) => {
+          const employeeNotes = approved.filter((note) => note.employeeId === String(employee.id));
+          const points = employeeNotes.reduce((total, note) => total + (Number(note.points) || 0), 0);
+          const adjustment = Number(employee.pontosAjusteAdm) || 0;
+          return [
+            employee.matricula,
+            employee.nome,
+            employee.setor,
+            employeeNotes.length,
+            points,
+            adjustment,
+            points + adjustment,
+            employeeNotes.reduce((total, note) => total + (Number(note.volumeM3) || 0), 0)
+          ];
+        }).sort((a, b) => b[6] - a[6]);
+        const monthlySummary = getMonthlyReportRows(notes, 6);
+        const rows = [
+          ['Relatório gerencial SantriRank'],
+          ['Período inicial', start.toLocaleDateString('pt-BR')],
+          ['Período final', new Date().toLocaleDateString('pt-BR')],
+          ['Janela', 'Últimos 6 meses'],
+          ['Setor', 'Todos os setores'],
+          ['Gerado em', new Date().toLocaleString('pt-BR')],
+          [],
+          ['Resumo'],
+          ['Funcionários', employees.length],
+          ['Notas aprovadas', approved.length],
+          ['Notas pendentes / em revisão', pending.length],
+          ['Pontos aprovados', approvedPoints],
+          ['Volume aprovado (m³)', approvedVolume],
+          [],
+          ['Desempenho mensal'],
+          ['Mês', 'Pontos aprovados', 'Notas aprovadas', 'Volume aprovado (m³)', 'Pendentes'],
+          ...monthlySummary.map((month) => [
+            month.fullLabel,
+            month.approvedPoints,
+            month.approvedNotes,
+            month.approvedVolume,
+            month.pendingNotes
+          ]),
+          [],
+          ['Desempenho por funcionário'],
+          ['Matrícula', 'Funcionário', 'Setor', 'Notas aprovadas', 'Pontos aprovados', 'Ajustes ADM', 'Total no ranking', 'Volume aprovado (m³)'],
+          ...employeeSummary,
+          [],
+          ['Detalhamento das notas'],
+          ['Número da nota', 'Data', 'Matrícula', 'Colaborador', 'Setor', 'Status', 'Pontos', 'Itens', 'Unidades', 'Volume m³', 'Área m²', 'Metros lineares', 'Sacos', 'Erros', 'Observação'],
+          ...notes.map((note) => {
+            const employee = appState.employees.find((item) => item.id === note.employeeId);
+            return [
+              note.titulo,
+              new Date(Number(note.createdAt)).toLocaleDateString('pt-BR'),
+              employee?.matricula || '',
+              note.autor,
+              employee?.setor || '',
+              note.status,
+              note.points,
+              note.itemCount,
+              note.unitCount,
+              note.volumeM3,
+              note.areaM2,
+              note.linearMeters,
+              note.bagCount,
+              note.errorCount,
+              note.observation
+            ];
+          })
+        ];
+        const csv = '\ufeff' + rows.map((row) => row.map(escapeCsv).join(';')).join('\r\n');
+        if (IS_ANDROID_APP && window.AndroidApp) {
+          const cb = 'onSaveCsvResult';
+          window[cb] = function (resultJson) {
+            delete window[cb];
+            try {
+              const result = JSON.parse(resultJson);
+              if (!result.success) {
+                showToast(result.message || 'Não foi possível exportar o CSV.');
+                return;
+              }
+              appState.exportedFormat = format;
+              appState.exportedAt = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+              renderApp();
+              showToast(result.message);
+            } catch (error) {
+              console.error('Falha ao exportar CSV.', error);
+              showToast('Não foi possível exportar o CSV.');
+            }
+          };
+          window.AndroidApp.saveCsv(csv, cb);
+          return;
+        }
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+        link.download = 'relatorio_santrirank.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+      } else {
+        appState.exportedFormat = format;
+        appState.exportedAt = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        if (IS_ANDROID_APP && window.AndroidApp) {
+          window.AndroidApp.printReport();
+        } else {
+          window.print();
+        }
+      }
+      renderApp();
+      showToast(`Relatório ADM (${format}) gerado com os dados do período.`);
+    }
+
+    function toggleAdmAudit(empId) {
+      const current = appState.admAuditStatus[empId] || 'Aprovado';
+      const next = current === 'Aprovado' ? 'Pendente' : 'Aprovado';
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        const cb = 'onSetAuditStatusResult';
+        window[cb] = function (resultJson) {
+          delete window[cb];
+          try {
+            const result = JSON.parse(resultJson);
+            if (!result.success) {
+              showToast(result.message || 'Não foi possível atualizar a auditoria.');
+              return;
+            }
+            applyNativeBootstrap();
+            renderApp();
+            showToast(result.message);
+          } catch (error) {
+            console.error('Falha ao atualizar auditoria.', error);
+            showToast('Não foi possível atualizar a auditoria.');
+          }
+        };
+        window.AndroidApp.setAuditStatus(empId, next, cb);
+        return;
+      }
+      appState.admAuditStatus[empId] = next;
+      renderApp();
+      showToast(`Status de auditoria atualizado para ${appState.admAuditStatus[empId]}.`);
+    }
+
+    function submitAdmPointAdjustment(event, empId) {
+      event.preventDefault();
+      const amount = Number(document.getElementById('admPointAmount')?.value);
+      const reason = document.getElementById('admPointReason')?.value?.trim() || '';
+      if (!Number.isFinite(amount) || amount === 0 || !reason) {
+        showToast('Informe um ajuste diferente de zero e a justificativa.');
+        return;
+      }
+      adjustAdmBonus(empId, amount, reason);
+    }
+
+    function adjustAdmBonus(empId, bonusPts, reason = 'Ajuste rápido pelo painel ADM') {
+      const emp = appState.employees.find((e) => e.id === empId);
+      if (!emp) return;
+      if (IS_ANDROID_APP && window.AndroidApp) {
+        const cb = 'onAdjustBonusResult';
+        window[cb] = function (resultJson) {
+          delete window[cb];
+          try {
+            const result = JSON.parse(resultJson);
+            if (!result.success) {
+              showToast(result.message || 'Não foi possível aplicar o bônus.');
+              return;
+            }
+            appState.pointAdjustmentEmployeeId = '';
+            applyNativeBootstrap();
+            renderApp();
+            showToast(result.message);
+          } catch (error) {
+            console.error('Falha ao aplicar bônus.', error);
+            showToast('Não foi possível aplicar o bônus.');
+          }
+        };
+        window.AndroidApp.adjustBonus(empId, bonusPts, reason, cb);
+        return;
+      }
+      emp.pontosAjusteAdm = (Number(emp.pontosAjusteAdm) || 0) + bonusPts;
+      appState.pointAdjustmentEmployeeId = '';
+      renderApp();
+      showToast(`Ajuste ADM de ${bonusPts > 0 ? '+' : ''}${bonusPts} pts aplicado a ${emp.nome}.`);
+    }
+
+    function setRankingPeriod(p) {
+      appState.rankingPeriod = p;
+      renderApp();
+    }
+
+    function logoutApp() {
+      if (window.AndroidApp) window.AndroidApp.logout();
+      appState.activeScreen = 'login';
+      appState.loginPin = '';
+      loginError = '';
+      renderApp();
+    }
+
+    window.handleAndroidBack = function () {
+      if (!IS_ANDROID_APP || appState.activeScreen === 'login') return false;
+      logoutApp();
+      return true;
+    };
+
+    // =========================================================================
+    // MODAL DE DETALHES DO FUNCIONÁRIO
+    // =========================================================================
+
+    function openProfileModal(empId) {
+      const sorted = getSortedEmployees();
+      const index = sorted.findIndex((e) => e.id === empId);
+      const emp = appState.employees.find((employee) => employee.id === empId);
+      if (!emp) return;
+
+      const pos = index >= 0 ? index + 1 : '—';
+      const stats = getEmployeePeriodStats(emp);
+      const pts = stats.points;
+
+      document.getElementById('profileModalContent').innerHTML = `
+        <div class="p-5 space-y-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-full bg-campeao-greenSoft border border-campeao-green/25 flex items-center justify-center text-sm font-bold text-campeao-greenDark">
+                ${getInitials(emp.nome)}
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <h3 class="text-base font-bold text-campeao-ink">${emp.nome}</h3>
+                  ${pos === 1 ? '<span class="text-amber-500">👑</span>' : ''}
+                </div>
+                <p class="text-xs text-campeao-muted">${emp.cargo} • #${pos}</p>
+              </div>
+            </div>
+            <button onclick="closeProfileModal()" class="w-7 h-7 rounded-lg text-campeao-muted hover:bg-campeao-surface flex items-center justify-center cursor-pointer">
+              ✕
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="rounded-2xl bg-campeao-surface p-2.5">
+              <p class="text-[10px] text-campeao-muted">Pontos</p>
+              <p class="text-sm font-bold text-campeao-greenDark mt-0.5">${pts.toLocaleString('pt-BR')}</p>
+            </div>
+            <div class="rounded-2xl bg-campeao-surface p-2.5">
+              <p class="text-[10px] text-campeao-muted">Volume</p>
+              <p class="text-sm font-bold text-campeao-ink mt-0.5">${stats.volumeM3.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m³</p>
+            </div>
+            <div class="rounded-2xl bg-campeao-surface p-2.5">
+              <p class="text-[10px] text-campeao-muted">Notas</p>
+              <p class="text-sm font-bold text-campeao-ink mt-0.5">${stats.notes}</p>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs text-campeao-muted">
+              <span>Nível ${emp.tier} • ${emp.setor}</span>
+              <span class="font-semibold text-campeao-ink">${emp.metaPct}%</span>
+            </div>
+            <div class="thin-track">
+              <div class="thin-fill bg-campeao-green" style="width: ${emp.metaPct}%"></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // =========================================================================
+    // Prévia do aplicativo e renderização global
+    // =========================================================================
+
+    function renderScreenContent(screenKey) {
+      switch (screenKey) {
+        case 'login':
+          return renderLoginScreen();
+        case 'ranking':
+          return renderRankingScreen();
+        case 'scanner':
+          return renderScannerScreen();
+        case 'equipe':
+          return renderEquipeScreen();
+        case 'relatorios':
+          return renderRelatoriosScreen();
+        case 'configuracoes':
+          return renderConfiguracoesScreen();
+        default:
+          return renderRankingScreen();
+      }
+    }
+
+    function renderBottomNav(screenKey) {
+      const isAdm = appState.userRole === 'adm';
+      const items = [
+        { key: 'ranking', label: 'Ranking', icon: ICONS.navRanking },
+        { key: 'scanner', label: 'Scanner', icon: ICONS.navScanner },
+        { key: 'equipe', label: 'Equipe', icon: ICONS.navEquipe },
+        ...(isAdm ? [
+          { key: 'relatorios', label: 'Relatórios', icon: ICONS.navRelatorios },
+          { key: 'configuracoes', label: 'Config.', icon: ICONS.navSettings }
+        ] : [])
+      ];
+
+      return `
+        <div class="bg-white/95 backdrop-blur border-t border-campeao-line px-2 py-1.5 flex items-center justify-around">
+          ${items.map((item) => {
+            const active = screenKey === item.key;
+            return `
+              <button
+                type="button"
+                onclick="selectScreen('${item.key}')"
+                class="flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-2xl text-[10px] font-semibold transition cursor-pointer ${
+                  active
+                    ? 'bg-campeao-greenSoft text-campeao-greenDark'
+                    : 'text-campeao-muted hover:text-campeao-ink'
+                }"
+              >
+                <span class="${active ? 'text-campeao-greenDark' : 'text-campeao-muted'}">${item.icon}</span>
+                <span>${item.label}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderPhoneFrame(screenKey) {
+      if (IS_ANDROID_APP) {
+        return `
+          <div class="android-app-frame">
+            <div class="phone-viewport">
+              ${renderScreenContent(screenKey)}
+            </div>
+            ${screenKey !== 'login' ? renderBottomNav(screenKey) : ''}
+          </div>
+        `;
+      }
+      return `
+        <div class="phone-shell w-[360px] max-w-full rounded-[44px] p-2.5">
+          <div class="rounded-[34px] overflow-hidden bg-campeao-surface flex flex-col h-[700px] max-h-[82vh]">
+            <div class="bg-white px-5 pt-2.5 pb-1.5 flex items-center justify-between text-[11px] font-semibold text-campeao-ink border-b border-campeao-line/60">
+              <span>09:41</span>
+              <span class="w-16 h-3.5 rounded-full bg-zinc-900"></span>
+              <span class="text-[10px] text-campeao-muted">${appState.userRole === 'adm' ? 'ADM' : 'OP'}</span>
+            </div>
+
+            <div class="phone-viewport flex-1 overflow-y-auto px-3.5 py-2.5">
+              ${renderScreenContent(screenKey)}
+            </div>
+
+            ${screenKey !== 'login' ? renderBottomNav(screenKey) : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTabs() {
+      const isAdm = appState.userRole === 'adm';
+      document.querySelectorAll('.screen-tab').forEach((btn) => {
+        const key = btn.getAttribute('data-screen-tab');
+        const active = appState.viewMode === 'single' && appState.activeScreen === key;
+        const locked = ['relatorios', 'configuracoes'].includes(key) && !isAdm;
+        btn.textContent = locked ? `${SCREEN_LABELS[key]} (ADM)` : SCREEN_LABELS[key];
+        if (btn.closest('.md\\:hidden')) {
+          btn.className = `screen-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
+            active
+              ? 'bg-campeao-greenDark text-white border-campeao-greenDark'
+              : locked
+                ? 'bg-campeao-surface text-campeao-subtle border-campeao-line'
+                : 'bg-white text-campeao-muted border-campeao-line'
+          }`;
+        } else {
+          btn.className = `screen-tab px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+            active
+              ? 'bg-white text-campeao-ink shadow-2xs'
+              : locked
+                ? 'text-campeao-subtle hover:text-campeao-muted'
+                : 'text-campeao-muted hover:text-campeao-ink'
+          }`;
+        }
+      });
+    }
+
+    // ---------------------------------------------------------------------------
+    // Renderiza a interface de acordo com o estado e a tela ativa.
+    // ---------------------------------------------------------------------------
+    function renderApp() {
+      renderTabs();
+      saveAppState();
+      const container = document.getElementById('showcaseContainer');
+
+      if (appState.viewMode === 'side') {
+        container.innerHTML = `
+          <div class="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 place-items-center">
+            <div class="flex flex-col items-center gap-2.5">
+              <span class="text-xs font-medium text-campeao-muted">Ranking • Destaques & Perfis</span>
+              ${renderPhoneFrame('ranking')}
+            </div>
+            <div class="flex flex-col items-center gap-2.5">
+              <span class="text-xs font-medium text-campeao-muted">Relatórios • Exclusivo ADM</span>
+              ${renderPhoneFrame('relatorios')}
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = renderPhoneFrame(appState.activeScreen);
+      }
+    }
+
+    renderApp();
+    applyNativeBootstrap();
+  </script>
+</body>
+</html>
